@@ -2,7 +2,7 @@ import { useState } from "react";
 import List from "./List";
 
 const Lists = () => {
-  const [day, setDay] = useState<number>(0);
+  const [day, setDay] = useState<number>(1);
   return (
     <>
       <button className="btn" onClick={() => setDay(day + 1)}>

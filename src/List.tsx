@@ -31,16 +31,33 @@ const List = ({ listNumber, title, booksShortNames, day }: ListProps) => {
     <div className="collapse collapse-arrow bg-base-200">
       <input type="radio" name="my-accordion-2" />
       <div className="collapse-title flex items-center">
-        <p className="text-xl font-medium">List {listNumber}</p>
-        <p className="text-lg font-sans ml-2 flex-grow">{title}</p>
         <p className="text-xl font-medium">
-          {day} of {totalChapters}
+          List {listNumber}: {title}
+        </p>
+        <p className="ml-4 text-sm font-sans flex-grow">
+          {`Next up: ${todaysReading.fullName} ${todaysReading.chapter}`}
+        </p>
+        <p className="text-xl font-medium">
+          Day {day % totalChapters} of {totalChapters}
         </p>
       </div>
-      <div className="collapse-content">
-        <p>{bookFullNames}</p>
-        <p>Today's book: {todaysReading.book}</p>
-        <p>Today's chapter: {todaysReading.chapter}</p>
+      <div className="collapse-content flex flex-col items-center">
+        <p>Today's reading:</p>
+        <p>{`${todaysReading.fullName} ${todaysReading.chapter}`}</p>
+        <div className="p-2">
+          <a
+            href={`https://www.bible.com/bible/1990/${todaysReading.shortName}.${todaysReading.chapter}.HSV`}
+          >
+            <button className="m-1 btn btn-primary">Read</button>
+          </a>
+          <a
+            href={`https://www.bible.com/audio-bible/1990/${todaysReading.shortName}.${todaysReading.chapter}.HSV`}
+          >
+            <button className="m-1 btn btn-primary">Listen</button>
+          </a>
+        </div>
+        <p className="italic">Books in this section:</p>
+        <p className="max-w-2xl italic text-center">{bookFullNames}</p>
       </div>
     </div>
   );

@@ -5,7 +5,8 @@ export interface BookInfo {
 }
 
 export type BookChapter = {
-  book: string;
+  shortName: string;
+  fullName: string;
   chapter: number;
 };
 
@@ -98,7 +99,7 @@ export const getTodaysReading = (
     return sum + bookData.chapters;
   }, 0);
 
-  const wrappedDay = (day - 1) % totalChapters + 1;
+  const wrappedDay = ((day - 1) % totalChapters) + 1;
 
   for (const shortName of shortNames) {
     const bookData = getBookInfo(shortName);
@@ -107,7 +108,11 @@ export const getTodaysReading = (
 
     if (wrappedDay <= newChapterSum) {
       const chapter = wrappedDay - chapterSum;
-      return { book: bookData.shortName, chapter };
+      return {
+        shortName: bookData.shortName,
+        fullName: bookData.fullName,
+        chapter,
+      };
     }
 
     chapterSum = newChapterSum;
