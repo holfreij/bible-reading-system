@@ -46,14 +46,16 @@ const List = ({ listNumber, title, booksShortNames, day }: ListProps) => {
         <p>{`${todaysReading.fullName} ${todaysReading.chapter}`}</p>
         <div className="p-2">
           <a
+            className="btn m-1 btn-primary"
             href={`https://www.bible.com/bible/1990/${todaysReading.shortName}.${todaysReading.chapter}.HSV`}
           >
-            <button className="m-1 btn btn-primary">Read</button>
+            Read
           </a>
           <a
+            className="m-1 btn btn-primary"
             href={`https://www.bible.com/audio-bible/1990/${todaysReading.shortName}.${todaysReading.chapter}.HSV`}
           >
-            <button className="m-1 btn btn-primary">Listen</button>
+            Listen
           </a>
         </div>
         <p className="italic">Books in this section:</p>
