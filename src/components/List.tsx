@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { BookChapter, getBookInfo, getTodaysReading } from "./scripture-utils";
+import {
+  BookChapter,
+  getBookInfo,
+  getTodaysReading,
+} from "../utils/scripture-utils";
 
 type ListProps = {
   listNumber: number;
