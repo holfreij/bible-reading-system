@@ -9,6 +9,7 @@ type AccountProps = {
 export default function Account({ session }: AccountProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [username, setUsername] = useState<string>("");
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
 
   useEffect(() => {
     let ignore = false;
@@ -18,7 +19,7 @@ export default function Account({ session }: AccountProps) {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select(`username`)
+        .select(`username, bookmarks`)
         .eq("id", user.id)
         .single();
 
@@ -27,6 +28,7 @@ export default function Account({ session }: AccountProps) {
           console.warn(error);
         } else if (data) {
           setUsername(data.username);
+          setBookmarks(data.bookmarks);
         }
       }
 
@@ -49,6 +51,7 @@ export default function Account({ session }: AccountProps) {
     const updates = {
       id: user.id,
       username,
+      bookmarks,
       updated_at: new Date(),
     };
 
@@ -60,42 +63,84 @@ export default function Account({ session }: AccountProps) {
     setLoading(false);
   }
 
-  return (
-    <form onSubmit={updateProfile} className="form-widget">
-      <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" type="text" value={session.user.email} disabled />
-      </div>
-      <div>
-        <label htmlFor="username">Name</label>
-        <input
-          id="username"
-          type="text"
-          required
-          value={username || ""}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </div>
+  const handleBookmarkChange = (index: number, value: number) => {
+    const updatedBookmarks = bookmarks ? [...bookmarks] : [];
 
-      <div>
-        <button
-          className="button block primary"
-          type="submit"
-          disabled={loading}
+    while (updatedBookmarks.length <= index) {
+      updatedBookmarks.push(0); // Default value
+    }
+
+    updatedBookmarks[index] = value;
+
+    setBookmarks(updatedBookmarks);
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <p className="font-medium text-lg">Update your profile and bookmarks</p>
+      <form
+        onSubmit={updateProfile}
+        className="flex flex-col items-center gap-2"
+      >
+        <label
+          htmlFor="email"
+          className="input input-bordered flex items-center gap-2 w-60"
         >
+          Email
+          <input
+            id="email"
+            type="email"
+            className="grow"
+            value={session.user.email}
+            disabled
+          />
+        </label>
+        <label
+          htmlFor="username"
+          className="input input-bordered flex items-center gap-2 w-60"
+        >
+          Name
+          <input
+            id="username"
+            type="text"
+            required
+            value={username || ""}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </label>
+        {bookmarks &&
+          bookmarks.map((bookmark, index) => (
+            <label
+              key={index}
+              htmlFor="bookmarks"
+              className="input input-bordered flex items-center gap-2"
+            >
+              <p className="font-bold">Bookmark {index + 1}</p>
+              <input
+                className="w-14"
+                id={`bookmark${index}`}
+                type="number"
+                required
+                value={bookmark}
+                onChange={(event) =>
+                  handleBookmarkChange(index, +event.target.value)
+                }
+              />
+            </label>
+          ))}
+
+        <button className="btn btn-primary" type="submit" disabled={loading}>
           {loading ? "Loading ..." : "Update"}
         </button>
-      </div>
 
-      <div>
         <button
-          className="button block"
+          className="btn btn-error btn-outline"
           type="button"
           onClick={() => supabase.auth.signOut()}
         >
           Sign Out
         </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

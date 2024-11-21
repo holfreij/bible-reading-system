@@ -1,3 +1,5 @@
+import UserControl from "./UserControl";
+
 const Header = () => {
   return (
     <div>
@@ -11,7 +13,7 @@ const Header = () => {
           Bible-Reading System
         </a>
       </p>
-      <button className="w-full btn btn-primary">Log in</button>
+      <UserControl />
     </div>
   );
 };

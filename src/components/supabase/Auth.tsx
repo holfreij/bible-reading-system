@@ -20,30 +20,31 @@ export default function Auth() {
   };
 
   return (
-    <div className="row flex flex-center">
-      <div className="col-6 form-widget">
-        <h1 className="header">Supabase + React</h1>
-        <p className="description">
-          Sign in via magic link with your email below
-        </p>
-        <form className="form-widget" onSubmit={handleLogin}>
-          <div>
+    <div className="flex flex-col items-center gap-2">
+      <p className="font-medium text-lg">
+        Sign in to store and sync your bookmarks
+      </p>
+      <p className="">Sign in with your email. No registration required.</p>
+      <form className="form-widget" onSubmit={handleLogin}>
+        <div className="flex flex-col items-center gap-2">
+          <label className="input input-bordered flex items-center gap-2">
+            Email
             <input
-              className="inputField"
               type="email"
-              placeholder="Your email"
+              className="grow"
+              placeholder="your-mail@site.com"
               value={email}
               required={true}
               onChange={(e) => setEmail(e.target.value)}
             />
-          </div>
+          </label>
           <div>
-            <button className={"button block"} disabled={loading}>
-              {loading ? <span>Loading</span> : <span>Send magic link</span>}
+            <button className={"btn btn-primary"} disabled={loading}>
+              {loading ? <span>Loading</span> : <span>Send login link</span>}
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }
