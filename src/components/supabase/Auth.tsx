@@ -28,7 +28,7 @@ export default function Auth() {
       <form className="form-widget" onSubmit={handleLogin}>
         <div className="flex flex-col items-center gap-2">
           <label className="input input-bordered flex items-center gap-2">
-            Email
+            <p className="font-medium">Email</p>
             <input
               type="email"
               className="grow"

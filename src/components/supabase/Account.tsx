@@ -86,7 +86,7 @@ export default function Account({ session }: AccountProps) {
           htmlFor="email"
           className="input input-bordered flex items-center gap-2 w-60"
         >
-          Email
+          <p className="font-medium">Email</p>
           <input
             id="email"
             type="email"
@@ -99,7 +99,7 @@ export default function Account({ session }: AccountProps) {
           htmlFor="username"
           className="input input-bordered flex items-center gap-2 w-60"
         >
-          Name
+          <p className="font-medium">Name</p>
           <input
             id="username"
             type="text"
@@ -115,7 +115,8 @@ export default function Account({ session }: AccountProps) {
               htmlFor="bookmarks"
               className="input input-bordered flex items-center gap-2"
             >
-              <p className="font-bold">Bookmark {index + 1}</p>
+              <p className="font-medium">Bookmark {index + 1}</p>
+              <p>- Day</p>
               <input
                 className="w-14"
                 id={`bookmark${index}`}
