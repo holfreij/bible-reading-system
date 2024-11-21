@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserCircleIcon } from "../utils/hero-icons";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "../utils/supabase-client";
 import Auth from "./supabase/Auth";
