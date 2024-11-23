@@ -4,6 +4,8 @@ import {
   getBookInfo,
   getTodaysReading,
 } from "../utils/scripture-utils";
+import { useTranslationShortNames } from "../context/BibleTranslationContext";
+import { BibleTranslations } from "../utils/bible-translation";
 
 type ListProps = {
   listNumber: number;
@@ -14,6 +16,12 @@ type ListProps = {
 };
 
 const List = ({ listNumber, title, booksShortNames, day }: ListProps) => {
+  const { shortName } = useTranslationShortNames();
+
+  const translationInfo = BibleTranslations.find(
+    (translation) => translation.shortName === shortName
+  );
+
   const bookFullNames: string = useMemo(() => {
     return booksShortNames
       .map((shortName) => getBookInfo(shortName).fullName)
@@ -48,20 +56,22 @@ const List = ({ listNumber, title, booksShortNames, day }: ListProps) => {
       <div className="collapse-content flex flex-col items-center">
         <p>Today's reading:</p>
         <p>{`${todaysReading.fullName} ${todaysReading.chapter}`}</p>
-        <div className="p-2">
-          <a
-            className="btn m-1 btn-primary"
-            href={`https://www.bible.com/bible/1990/${todaysReading.shortName}.${todaysReading.chapter}.HSV`}
-          >
-            Read
-          </a>
-          <a
-            className="m-1 btn btn-primary"
-            href={`https://www.bible.com/audio-bible/1990/${todaysReading.shortName}.${todaysReading.chapter}.HSV`}
-          >
-            Listen
-          </a>
-        </div>
+        {translationInfo && (
+          <div className="p-2">
+            <a
+              className="btn m-1 btn-primary"
+              href={`https://www.bible.com/bible/${translationInfo.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translationInfo?.shortName}`}
+            >
+              Read
+            </a>
+            <a
+              className="m-1 btn btn-primary"
+              href={`https://www.bible.com/audio-bible/${translationInfo.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translationInfo?.shortName}`}
+            >
+              Listen
+            </a>
+          </div>
+        )}
         <p className="italic">Books in this section:</p>
         <p className="max-w-2xl italic text-center">{bookFullNames}</p>
       </div>

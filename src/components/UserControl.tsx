@@ -40,6 +40,9 @@ const UserControl = () => {
           ) : (
             <Account key={session.user.id} session={session} />
           )}
+          <form className="flex justify-center mt-4" method="dialog">
+            <button className="btn btn-primary">Close</button>
+          </form>
         </div>
         <form method="dialog" className="modal-backdrop">
           <button>close</button>
