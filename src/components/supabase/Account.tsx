@@ -164,7 +164,10 @@ export default function Account({ session }: AccountProps) {
           <button
             className="btn btn-error btn-outline"
             type="button"
-            onClick={() => supabase.auth.signOut()}
+            onClick={() => {
+              supabase.auth.signOut();
+              setBookmarks([]);
+            }}
           >
             Sign Out
           </button>
