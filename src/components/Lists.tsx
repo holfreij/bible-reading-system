@@ -16,15 +16,11 @@ const Lists = () => {
             listNumber={1}
             title="Gospels"
             booksShortNames={["MAT", "MRK", "LUK", "JHN"]}
-            day={bookmarks[0]}
-            totalDays={89}
           />
           <List
             listNumber={2}
             title="Pentateuch"
             booksShortNames={["GEN", "EXO", "LEV", "NUM", "DEU"]}
-            day={bookmarks[1]}
-            totalDays={187}
           />
           <List
             listNumber={3}
@@ -39,12 +35,9 @@ const Lists = () => {
               "COL",
               "HEB",
             ]}
-            day={bookmarks[2]}
-            totalDays={78}
           />
           <List
             listNumber={4}
-            totalDays={65}
             title="Epistles - Part II"
             booksShortNames={[
               "1TH",
@@ -62,29 +55,14 @@ const Lists = () => {
               "JUD",
               "REV",
             ]}
-            day={bookmarks[3]}
           />
           <List
             listNumber={5}
             title="Wisdom"
             booksShortNames={["JOB", "ECC", "SNG"]}
-            day={bookmarks[4]}
-            totalDays={62}
           />
-          <List
-            listNumber={6}
-            title="Psalms"
-            booksShortNames={["PSA"]}
-            day={bookmarks[5]}
-            totalDays={150}
-          />
-          <List
-            listNumber={7}
-            title="Proverbs"
-            booksShortNames={["PRO"]}
-            day={bookmarks[6]}
-            totalDays={31}
-          />
+          <List listNumber={6} title="Psalms" booksShortNames={["PSA"]} />
+          <List listNumber={7} title="Proverbs" booksShortNames={["PRO"]} />
           <List
             listNumber={8}
             title="History"
@@ -102,8 +80,6 @@ const Lists = () => {
               "NEH",
               "EST",
             ]}
-            day={bookmarks[7]}
-            totalDays={249}
           />
           <List
             listNumber={9}
@@ -127,16 +103,8 @@ const Lists = () => {
               "ZEC",
               "MAL",
             ]}
-            day={bookmarks[8]}
-            totalDays={250}
           />
-          <List
-            listNumber={10}
-            title="Acts"
-            booksShortNames={["ACT"]}
-            day={bookmarks[9]}
-            totalDays={28}
-          />
+          <List listNumber={10} title="Acts" booksShortNames={["ACT"]} />
         </>
       )}
     </>
