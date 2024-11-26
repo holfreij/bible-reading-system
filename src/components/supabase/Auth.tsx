@@ -9,7 +9,12 @@ export default function Auth() {
     event.preventDefault();
 
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: "https://rolfheij.github.io/bible-reading-system",
+      },
+    });
 
     if (error) {
       alert(error.message);
