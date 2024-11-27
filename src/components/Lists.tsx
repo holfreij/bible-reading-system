@@ -78,7 +78,7 @@ const lists: ListInfo[] = [
 ];
 
 const Lists = () => {
-  const { session } = useProfileData();
+  const { session, loading } = useProfileData();
 
   return (
     <>
@@ -86,14 +86,15 @@ const Lists = () => {
         "Please log in to load your bookmarks and set a preferred Bible Translation"
       ) : (
         <>
-          {lists.map((listInfo: ListInfo, index) => (
-            <List
-              key={listInfo.label}
-              listNumber={index}
-              title={listInfo.label}
-              booksShortNames={listInfo.books}
-            />
-          ))}
+          {!loading &&
+            lists.map((listInfo: ListInfo, index) => (
+              <List
+                key={listInfo.label}
+                listNumber={index}
+                title={listInfo.label}
+                booksShortNames={listInfo.books}
+              />
+            ))}
         </>
       )}
     </>
