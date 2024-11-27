@@ -62,7 +62,11 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
 
       if (!error && data) {
         setBookmarks(data.bookmarks || []);
-        setTranslation(data.translation || "");
+        setTranslation(
+          BibleTranslations.find(
+            (translation) => translation.shortName === data.translation
+          ) || BibleTranslations[0]
+        );
       }
 
       setLoading(false);
