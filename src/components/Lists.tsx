@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useProfileData } from "../context/ProfileDataProvider";
 import List from "./List";
 
@@ -79,6 +80,7 @@ const lists: ListInfo[] = [
 
 const Lists = () => {
   const { session, loading } = useProfileData();
+  const [openList, setOpenList] = useState<number>(0);
 
   return (
     <>
@@ -93,6 +95,8 @@ const Lists = () => {
                 listNumber={index}
                 title={listInfo.label}
                 booksShortNames={listInfo.books}
+                openList={openList}
+                setOpenList={setOpenList}
               />
             ))}
         </>

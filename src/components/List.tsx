@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 import {
   BookChapter,
   getBookInfo,
@@ -10,9 +10,17 @@ type ListProps = {
   listNumber: number;
   title: string;
   booksShortNames: string[];
+  openList: number;
+  setOpenList: Dispatch<SetStateAction<number>>;
 };
 
-const List = ({ listNumber, title, booksShortNames }: ListProps) => {
+const List = ({
+  listNumber,
+  title,
+  booksShortNames,
+  openList,
+  setOpenList,
+}: ListProps) => {
   const { bookmarks, setBookmarks, translation } = useProfileData();
 
   const bookFullNames: string = useMemo(() => {
@@ -45,7 +53,12 @@ const List = ({ listNumber, title, booksShortNames }: ListProps) => {
     <div className="collapse collapse-arrow bg-base-200">
       {bookmarks && todaysReading && (
         <>
-          <input type="radio" name="my-accordion-2" />
+          <input
+            type="radio"
+            name="my-accordion-2"
+            checked={openList === listNumber}
+            onClick={() => setOpenList(listNumber)}
+          />
           <div className="collapse-title flex items-center">
             <p className="text-xl font-medium">
               List {listNumber + 1}: {title}
@@ -74,7 +87,13 @@ const List = ({ listNumber, title, booksShortNames }: ListProps) => {
                 >
                   Listen
                 </a>
-                <button className="btn btn-success" onClick={moveBookmark}>
+                <button
+                  className="btn btn-success"
+                  onClick={() => {
+                    moveBookmark();
+                    setOpenList(listNumber + 1);
+                  }}
+                >
                   Done
                 </button>
               </div>
