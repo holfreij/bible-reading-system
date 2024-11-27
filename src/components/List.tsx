@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useMemo } from "react";
+import { useMemo } from "react";
 import {
   BookChapter,
   getBookInfo,
@@ -11,7 +11,7 @@ type ListProps = {
   title: string;
   booksShortNames: string[];
   openList: number;
-  setOpenList: Dispatch<SetStateAction<number>>;
+  onChangeOpenList: (newOpenList: number) => void;
 };
 
 const List = ({
@@ -19,7 +19,7 @@ const List = ({
   title,
   booksShortNames,
   openList,
-  setOpenList,
+  onChangeOpenList,
 }: ListProps) => {
   const { bookmarks, setBookmarks, translation } = useProfileData();
 
@@ -57,7 +57,7 @@ const List = ({
             type="radio"
             name="my-accordion-2"
             checked={openList === listNumber}
-            onClick={() => setOpenList(listNumber)}
+            onClick={() => onChangeOpenList(listNumber)}
           />
           <div className="collapse-title flex items-center">
             <p className="text-xl font-medium">
@@ -91,7 +91,7 @@ const List = ({
                   className="btn btn-success"
                   onClick={() => {
                     moveBookmark();
-                    setOpenList(listNumber + 1);
+                    onChangeOpenList(listNumber + 1);
                   }}
                 >
                   Done

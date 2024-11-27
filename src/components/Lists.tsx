@@ -82,6 +82,10 @@ const Lists = () => {
   const { session, loading } = useProfileData();
   const [openList, setOpenList] = useState<number>(0);
 
+  const openListChangeHandler = (newValue: number) => {
+    setOpenList(newValue % 10);
+  };
+
   return (
     <>
       {!session ? (
@@ -96,7 +100,7 @@ const Lists = () => {
                 title={listInfo.label}
                 booksShortNames={listInfo.books}
                 openList={openList}
-                setOpenList={setOpenList}
+                onChangeOpenList={openListChangeHandler}
               />
             ))}
         </>
