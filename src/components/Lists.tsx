@@ -1,8 +1,5 @@
-import { useState } from "react";
 import { useProfileData } from "../context/ProfileDataProvider";
-import { supabase } from "../utils/supabase-client";
 import List from "./List";
-import { Session } from "@supabase/supabase-js";
 
 type ListInfo = {
   label: string;
@@ -81,10 +78,8 @@ const lists: ListInfo[] = [
 ];
 
 const Lists = () => {
-  const [session, setSession] = useState<Session>();
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) setSession(session);
-  });
+  const { session } = useProfileData();
+
   return (
     <>
       {!session ? (

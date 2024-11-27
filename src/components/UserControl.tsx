@@ -1,22 +1,10 @@
-import { useEffect, useState } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
-import { Session } from "@supabase/supabase-js";
-import { supabase } from "../utils/supabase-client";
 import Auth from "./supabase/Auth";
 import Account from "./supabase/Account";
+import { useProfileData } from "../context/ProfileDataProvider";
 
 const UserControl = () => {
-  const [session, setSession] = useState<Session | null>();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  }, []);
+  const { session } = useProfileData();
 
   const openUserProfile = () => {
     if (typeof document !== "undefined" && document !== null) {
@@ -35,11 +23,7 @@ const UserControl = () => {
       </button>
       <dialog id="my_modal_2" className="modal w-full">
         <div className="modal-box">
-          {!session ? (
-            <Auth />
-          ) : (
-            <Account key={session.user.id} session={session} />
-          )}
+          {!session ? <Auth /> : <Account key={session.user.id} />}
           <form className="flex justify-center mt-4" method="dialog">
             <button className="btn btn-primary">Close</button>
           </form>

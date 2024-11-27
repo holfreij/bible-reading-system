@@ -10,13 +10,15 @@ import {
   BibleTranslation,
   BibleTranslations,
 } from "../utils/bible-translation";
-import { User } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
 
 interface ProfileDataContextProps {
   bookmarks: number[];
   setBookmarks: (bookmarks: number[]) => void;
   translation: BibleTranslation;
   setTranslation: (translation: BibleTranslation) => void;
+  session: Session | null;
+  loading: boolean;
 }
 
 const ProfileDataContext = createContext<ProfileDataContextProps | undefined>(
@@ -33,13 +35,16 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [user, setUser] = useState<User>();
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       if (session) setUser(session.user);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
       if (session) setUser(session.user);
     });
   }, []);
@@ -67,13 +72,15 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    const syncData = async () => {
-      if (!user?.id) return;
+    const debounceTimer = setTimeout(() => {
+      const syncData = async () => {
+        if (!user?.id) return;
+        await updateProfile();
+      };
+      syncData();
+    }, 500);
 
-      await updateProfile();
-    };
-
-    syncData();
+    return () => clearTimeout(debounceTimer);
   }, [bookmarks, translation]);
 
   const updateProfile = async () => {
@@ -99,9 +106,11 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
         setBookmarks,
         translation,
         setTranslation,
+        session,
+        loading,
       }}
     >
-      {!loading && children}
+      {children}
     </ProfileDataContext.Provider>
   );
 };
