@@ -1,9 +1,8 @@
 import { Session } from "@supabase/supabase-js";
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "../../utils/supabase-client";
-import { useBookmarks } from "../../context/BookmarksContext";
 import { BibleTranslations } from "../../utils/bible-translation";
-import { useTranslationShortNames } from "../../context/BibleTranslationContext";
+import { useProfileData } from "../../context/ProfileDataProvider";
 
 type AccountProps = {
   session: Session;
@@ -12,8 +11,8 @@ type AccountProps = {
 export default function Account({ session }: AccountProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [username, setUsername] = useState<string>("");
-  const { shortName: translation, setShortName } = useTranslationShortNames();
-  const { bookmarks, setBookmarks } = useBookmarks();
+  const { bookmarks, setBookmarks, translation, setTranslation } =
+    useProfileData();
 
   useEffect(() => {
     let ignore = false;
@@ -33,7 +32,7 @@ export default function Account({ session }: AccountProps) {
         } else if (data) {
           setUsername(data.username);
           setBookmarks(data.bookmarks);
-          setShortName(data.translation);
+          setTranslation(data.translation);
         }
       }
 
@@ -116,9 +115,13 @@ export default function Account({ session }: AccountProps) {
 
           <select
             id="translation"
-            value={translation}
+            value={translation.shortName}
             onChange={(e) => {
-              setShortName(e.target.value);
+              setTranslation(
+                BibleTranslations.find(
+                  (translation) => translation.shortName === e.target.value
+                ) || BibleTranslations[0]
+              );
             }}
             className="select select-bordered w-full max-w-xs"
           >

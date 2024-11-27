@@ -4,9 +4,7 @@ import {
   getBookInfo,
   getTodaysReading,
 } from "../utils/scripture-utils";
-import { useTranslationShortNames } from "../context/BibleTranslationContext";
-import { BibleTranslations } from "../utils/bible-translation";
-import { useBookmarks } from "../context/BookmarksContext";
+import { useProfileData } from "../context/ProfileDataProvider";
 
 type ListProps = {
   listNumber: number;
@@ -15,12 +13,7 @@ type ListProps = {
 };
 
 const List = ({ listNumber, title, booksShortNames }: ListProps) => {
-  const { shortName } = useTranslationShortNames();
-  const { bookmarks, setBookmarks } = useBookmarks();
-
-  const translationInfo = BibleTranslations.find(
-    (translation) => translation.shortName === shortName
-  );
+  const { bookmarks, setBookmarks, translation } = useProfileData();
 
   const bookFullNames: string = useMemo(() => {
     return booksShortNames
@@ -67,18 +60,18 @@ const List = ({ listNumber, title, booksShortNames }: ListProps) => {
           <div className="collapse-content flex flex-col items-center">
             <p>Today's reading:</p>
             <p>{`${todaysReading.fullName} ${todaysReading.chapter}`}</p>
-            {translationInfo && (
+            {translation && (
               <div className="flex flex-col gap-2 m-2">
                 <div className="flex gap-2">
                   <a
                     className="btn btn-primary"
-                    href={`https://www.bible.com/bible/${translationInfo.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translationInfo?.shortName}`}
+                    href={`https://www.bible.com/bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
                   >
                     Read
                   </a>
                   <a
                     className="btn btn-primary"
-                    href={`https://www.bible.com/audio-bible/${translationInfo.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translationInfo?.shortName}`}
+                    href={`https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
                   >
                     Listen
                   </a>
