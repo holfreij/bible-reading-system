@@ -29,7 +29,6 @@ export default function Auth() {
       <p className="font-medium text-lg">
         Sign in to store and sync your bookmarks
       </p>
-      <p className="">Sign in with your email. No registration required.</p>
       <form className="form-widget" onSubmit={handleLogin}>
         <div className="flex flex-col items-center gap-2">
           <label className="input input-bordered flex items-center gap-2">
