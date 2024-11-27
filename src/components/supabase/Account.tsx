@@ -88,27 +88,23 @@ export default function Account({ session }: AccountProps) {
       >
         <div className="flex flex-col gap-2">
           <p className="font-medium text-center">Personal Information</p>
-          <label
-            htmlFor="email"
-            className="input input-bordered flex items-center gap-2 w-60"
-          >
+          <label className="input input-bordered flex items-center gap-2 w-60">
             <p className="font-medium">Email</p>
             <input
               id="email"
               type="email"
+              autoComplete="off"
               className="grow"
               value={session.user.email}
               disabled
             />
           </label>
-          <label
-            htmlFor="username"
-            className="input input-bordered flex items-center gap-2 w-60"
-          >
+          <label className="input input-bordered flex items-center gap-2 w-60">
             <p className="font-medium">Name</p>
             <input
               id="username"
               type="text"
+              autoComplete="off"
               required
               value={username || ""}
               onChange={(e) => setUsername(e.target.value)}
@@ -119,6 +115,7 @@ export default function Account({ session }: AccountProps) {
           <p className="font-medium text-center">Bible Settings</p>
 
           <select
+            id="translation"
             value={translation}
             onChange={(e) => {
               setShortName(e.target.value);
@@ -138,7 +135,6 @@ export default function Account({ session }: AccountProps) {
             bookmarks.map((bookmark, index) => (
               <label
                 key={index}
-                htmlFor="bookmarks"
                 className="input input-bordered flex items-center gap-2"
               >
                 <p className="font-medium">Bookmark {index + 1}</p>
