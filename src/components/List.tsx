@@ -37,14 +37,14 @@ const List = ({ listNumber, title, booksShortNames }: ListProps) => {
 
   const todaysReading: BookChapter | undefined = useMemo(() => {
     return bookmarks
-      ? getTodaysReading(bookmarks[listNumber - 1], booksShortNames)
+      ? getTodaysReading(bookmarks[listNumber], booksShortNames)
       : undefined;
   }, [bookmarks, listNumber, booksShortNames]);
 
   const moveBookmark = (): void => {
     if (!bookmarks) return;
     let newBookmarks = [...bookmarks];
-    newBookmarks[listNumber - 1] = newBookmarks[listNumber - 1] + 1;
+    newBookmarks[listNumber] = newBookmarks[listNumber] + 1;
     setBookmarks(newBookmarks);
   };
 
@@ -55,13 +55,13 @@ const List = ({ listNumber, title, booksShortNames }: ListProps) => {
           <input type="radio" name="my-accordion-2" />
           <div className="collapse-title flex items-center">
             <p className="text-xl font-medium">
-              List {listNumber}: {title}
+              List {listNumber + 1}: {title}
             </p>
             <p className="ml-4 text-sm font-sans flex-grow">
               {`Next up: ${todaysReading.fullName} ${todaysReading.chapter}`}
             </p>
             <p className="text-xl font-medium">
-              Day {bookmarks[listNumber - 1] % totalChapters} of {totalChapters}
+              Day {bookmarks[listNumber] % totalChapters} of {totalChapters}
             </p>
           </div>
           <div className="collapse-content flex flex-col items-center">
