@@ -61,25 +61,20 @@ const List = ({ listNumber, title, booksShortNames }: ListProps) => {
             <p>Today's reading:</p>
             <p>{`${todaysReading.fullName} ${todaysReading.chapter}`}</p>
             {translation && (
-              <div className="flex flex-col gap-2 m-2">
-                <div className="flex gap-2">
-                  <a
-                    className="btn btn-primary"
-                    href={`https://www.bible.com/bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
-                  >
-                    Read
-                  </a>
-                  <a
-                    className="btn btn-primary"
-                    href={`https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
-                  >
-                    Listen
-                  </a>
-                </div>
-                <button
-                  className="mx-10 btn btn-success"
-                  onClick={moveBookmark}
+              <div className="flex gap-2 m-2">
+                <a
+                  className="btn btn-primary"
+                  href={`https://www.bible.com/bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
                 >
+                  Read
+                </a>
+                <a
+                  className="btn btn-primary hidden md:inline-flex"
+                  href={`https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
+                >
+                  Listen
+                </a>
+                <button className="btn btn-success" onClick={moveBookmark}>
                   Done
                 </button>
               </div>
