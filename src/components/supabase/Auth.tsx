@@ -12,7 +12,9 @@ export default function Auth() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: "https://rolfheij.github.io/bible-reading-system",
+        emailRedirectTo: import.meta.env.PROD
+          ? "https://rolfheij.github.io/bible-reading-system"
+          : "http://localhost:5173/bible-reading-system/",
       },
     });
 
