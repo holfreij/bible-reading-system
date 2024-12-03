@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useProfileData } from "../context/ProfileDataProvider";
 import List from "./List";
 
