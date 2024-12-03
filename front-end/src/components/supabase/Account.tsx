@@ -3,7 +3,7 @@ import { useProfileData } from "../../context/ProfileDataProvider";
 import { supabase } from "../../utils/supabase-client";
 
 export default function Account() {
-  const { bookmarks, setBookmarks, translation, setTranslation, session } =
+  const { bookmarks, setBookmarks, translation, setTranslation, user } =
     useProfileData();
 
   const handleBookmarkChange = (index: number, value: number) => {
@@ -16,7 +16,7 @@ export default function Account() {
 
   return (
     <div className="flex flex-col items-center gap-6">
-      {!session ? (
+      {!user ? (
         <p className="font-medium text-lg text-center">
           You need to be logged in to use this profile menu
         </p>
@@ -35,7 +35,7 @@ export default function Account() {
                   type="email"
                   autoComplete="off"
                   className="grow"
-                  value={session.user.email}
+                  value={user.email}
                   disabled
                 />
               </label>
@@ -45,7 +45,7 @@ export default function Account() {
 
               <select
                 id="translation"
-                value={translation.shortName}
+                value={translation ? translation.shortName : ""}
                 onChange={(e) => {
                   setTranslation(
                     BibleTranslations.find(

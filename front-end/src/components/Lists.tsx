@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useProfileData } from "../context/ProfileDataProvider";
 import List from "./List";
 
@@ -79,7 +79,7 @@ const lists: ListInfo[] = [
 ];
 
 const Lists = () => {
-  const { session, loading } = useProfileData();
+  const { user, loading } = useProfileData();
   const [openList, setOpenList] = useState<number>(0);
 
   const openListChangeHandler = (newValue: number) => {
@@ -88,7 +88,7 @@ const Lists = () => {
 
   return (
     <>
-      {!session ? (
+      {!user ? (
         "Please log in to load your bookmarks and set a preferred Bible Translation"
       ) : (
         <>

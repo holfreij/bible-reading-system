@@ -10,14 +10,18 @@ import {
   BibleTranslation,
   BibleTranslations,
 } from "../utils/bible-translation";
-import { Session, User } from "@supabase/supabase-js";
+
+export type User = {
+  email: string;
+  id: string;
+};
 
 interface ProfileDataContextProps {
-  bookmarks: number[];
+  bookmarks: number[] | undefined;
   setBookmarks: (bookmarks: number[]) => void;
-  translation: BibleTranslation;
+  translation: BibleTranslation | undefined;
   setTranslation: (translation: BibleTranslation) => void;
-  session: Session | null;
+  user: User | undefined;
   loading: boolean;
 }
 
@@ -25,28 +29,52 @@ const ProfileDataContext = createContext<ProfileDataContextProps | undefined>(
   undefined
 );
 
+const setNewUser = (
+  currentUser: User | undefined,
+  newUser: User | undefined
+): boolean => {
+  if (!currentUser) return true;
+  if (!newUser) return false;
+  return currentUser.email !== newUser.email || currentUser.id !== newUser.id;
+};
+
 export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
-  const [bookmarks, setBookmarks] = useState<number[]>([
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  ]);
-  const [translation, setTranslation] = useState<BibleTranslation>(
+  const [bookmarks, setBookmarks] = useState<number[] | undefined>(undefined);
+  const [translation, setTranslation] = useState<BibleTranslation | undefined>(
     BibleTranslations[0]
   );
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const [user, setUser] = useState<User>();
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | undefined>(undefined);
 
   useEffect(() => {
+    const updateUser = (session: any) => {
+      const sessionUser: User | undefined =
+        session?.user && session.user.email && session.user.id
+          ? { email: session.user.email, id: session.user.id }
+          : undefined;
+
+      setUser((currentUser) => {
+        if (setNewUser(currentUser, sessionUser)) {
+          return sessionUser;
+        }
+        return currentUser;
+      });
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) setUser(session.user);
+      updateUser(session);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) setUser(session.user);
-    });
+    const { data: authStateListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        updateUser(session);
+      }
+    );
+
+    return () => {
+      authStateListener?.subscription.unsubscribe(); // Clean up the listener
+    };
   }, []);
 
   useEffect(() => {
@@ -61,11 +89,11 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (!error && data) {
-        setBookmarks(data.bookmarks || []);
+        setBookmarks(data.bookmarks || undefined);
         setTranslation(
           BibleTranslations.find(
             (translation) => translation.shortName === data.translation
-          ) || BibleTranslations[0]
+          ) || undefined
         );
       }
 
@@ -93,7 +121,7 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
     const updates = {
       id: user.id,
       bookmarks,
-      translation: translation.shortName,
+      translation: translation ? translation.shortName : "",
       updated_at: new Date(),
     };
 
@@ -110,7 +138,7 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
         setBookmarks,
         translation,
         setTranslation,
-        session,
+        user,
         loading,
       }}
     >

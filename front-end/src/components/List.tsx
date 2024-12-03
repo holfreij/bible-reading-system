@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BookChapter,
   getBookInfo,
   getTodaysReading,
 } from "../utils/scripture-utils";
 import { useProfileData } from "../context/ProfileDataProvider";
+import { getAudioFileUrl } from "../utils/audio";
 
 type ListProps = {
   listNumber: number;
@@ -49,6 +50,25 @@ const List = ({
     setBookmarks(newBookmarks);
   };
 
+  const [listenUrl, setListenUrl] = useState<string>("");
+
+  useEffect(() => {
+    const getListenUrl = async (baseUrl: string) => {
+      try {
+        const audioFileUrl = await getAudioFileUrl(baseUrl);
+        setListenUrl(audioFileUrl ?? baseUrl);
+      } catch (error) {
+        setListenUrl(baseUrl);
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    if (!todaysReading || !translation || openList !== listNumber) return;
+    const baseUrl = `https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`;
+
+    getListenUrl(baseUrl);
+  }, [todaysReading, translation, openList]);
+
   return (
     <div className="collapse collapse-arrow bg-base-200">
       {bookmarks && todaysReading && (
@@ -57,7 +77,7 @@ const List = ({
             type="radio"
             name="my-accordion-2"
             checked={openList === listNumber}
-            onClick={() => onChangeOpenList(listNumber)}
+            onChange={() => onChangeOpenList(listNumber)}
           />
           <div className="collapse-title flex items-center">
             <p className="text-xl font-medium">
@@ -83,7 +103,7 @@ const List = ({
                 </a>
                 <a
                   className="btn btn-primary hidden md:inline-flex"
-                  href={`https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
+                  href={listenUrl}
                 >
                   Listen
                 </a>
