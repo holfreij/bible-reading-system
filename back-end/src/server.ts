@@ -1,9 +1,6 @@
 import express from "express";
 import cors from "cors";
 import puppeteer from "puppeteer";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const app = express();
 const port = 3000;
@@ -15,17 +12,9 @@ app.get("/scrape-audio-file-url", async (req, res) => {
   const url = req.query.url as string;
 
   // Launch Puppeteer
-  const launchConfig =
-    process.env.NODE_ENV === "development"
-      ? {
-          headless: true,
-        }
-      : {
-          headless: true,
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
-          executablePath: "/usr/bin/google-chrome-stable",
-        };
-  const browser = await puppeteer.launch(launchConfig);
+  const browser = await puppeteer.launch({
+    headless: true,
+  });
   const page = await browser.newPage();
 
   // Navigate to the webpage
