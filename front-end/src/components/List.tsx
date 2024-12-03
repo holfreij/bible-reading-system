@@ -51,12 +51,14 @@ const List = ({
   };
 
   const [listenUrl, setListenUrl] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const getListenUrl = async (baseUrl: string) => {
       try {
         const audioFileUrl = await getAudioFileUrl(baseUrl);
         setListenUrl(audioFileUrl ?? baseUrl);
+        setLoading(false);
       } catch (error) {
         setListenUrl(baseUrl);
         console.error("Error fetching data:", error);
@@ -66,6 +68,7 @@ const List = ({
     if (!todaysReading || !translation || openList !== listNumber) return;
     const baseUrl = `https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`;
 
+    setLoading(true);
     getListenUrl(baseUrl);
   }, [todaysReading, translation, openList]);
 
@@ -102,8 +105,14 @@ const List = ({
                   Read
                 </a>
                 <a
-                  className="btn btn-primary hidden md:inline-flex"
+                  className={
+                    `btn md:inline-flex ` +
+                    (loading ? "btn-disabled" : "btn-primary")
+                  }
                   href={listenUrl}
+                  onClick={(e) => {
+                    if (loading) e.preventDefault();
+                  }}
                 >
                   Listen
                 </a>
