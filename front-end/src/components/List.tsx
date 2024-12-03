@@ -114,7 +114,7 @@ const List = ({
                     if (loading) e.preventDefault();
                   }}
                 >
-                  Listen
+                  {loading ? "Loading" : "Listen"}
                 </a>
                 <button
                   className="btn btn-success"
