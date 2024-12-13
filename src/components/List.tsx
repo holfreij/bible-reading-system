@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   BookChapter,
   getBookInfo,
+  getGlobalChapterNumber,
   getTodaysReading,
 } from "../utils/scripture-utils";
 import { useProfileData } from "../context/ProfileDataProvider";
-import { getAudioFileUrl } from "../utils/audio";
 
 type ListProps = {
   listNumber: number;
@@ -50,27 +50,19 @@ const List = ({
     setBookmarks(newBookmarks);
   };
 
-  const [listenUrl, setListenUrl] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const listenUrl: string = useMemo(() => {
+    if (!todaysReading || !translation) return "";
 
-  useEffect(() => {
-    const getListenUrl = async (baseUrl: string) => {
-      try {
-        const audioFileUrl = await getAudioFileUrl(baseUrl);
-        setListenUrl(audioFileUrl ?? baseUrl);
-        setLoading(false);
-      } catch (error) {
-        setListenUrl(baseUrl);
-        console.error("Error fetching data:", error);
-      }
-    };
+    const siteUrl = `https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`;
 
-    if (!todaysReading || !translation || openList !== listNumber) return;
-    const baseUrl = `https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`;
+    const globalChapterNumber = getGlobalChapterNumber(todaysReading);
+    if (!globalChapterNumber) return siteUrl;
 
-    setLoading(true);
-    getListenUrl(baseUrl);
-  }, [todaysReading, translation, openList]);
+    const audioHash = translation.hashes[globalChapterNumber - 1];
+    if (!audioHash) return siteUrl;
+
+    return `https://audio-bible-cdn.youversionapi.com/${translation.audioBibleNum}/32k/${todaysReading.shortName}/${todaysReading.chapter}-${audioHash}.mp3?version_id=${translation.bibleNum}`;
+  }, [todaysReading, translation]);
 
   return (
     <div className="collapse collapse-arrow bg-base-200">
@@ -104,17 +96,8 @@ const List = ({
                 >
                   Read
                 </a>
-                <a
-                  className={
-                    `btn md:inline-flex ` +
-                    (loading ? "btn-disabled" : "btn-primary")
-                  }
-                  href={listenUrl}
-                  onClick={(e) => {
-                    if (loading) e.preventDefault();
-                  }}
-                >
-                  {loading ? "Loading" : "Listen"}
+                <a className="btn md:inline-flex btn-primary" href={listenUrl}>
+                  Listen
                 </a>
                 <button
                   className="btn btn-success"

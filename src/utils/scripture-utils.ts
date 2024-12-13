@@ -10,7 +10,7 @@ export type BookChapter = {
   chapter: number;
 };
 
-const scrBookData: BookInfo[] = [
+export const scrBookData: BookInfo[] = [
   { shortName: "GEN", fullName: "Genesis", chapters: 50 },
   { shortName: "EXO", fullName: "Exodus", chapters: 40 },
   { shortName: "LEV", fullName: "Leviticus", chapters: 27 },
@@ -120,3 +120,21 @@ export const getTodaysReading = (
 
   throw new Error("Day is out of range.");
 };
+
+export function getGlobalChapterNumber(
+  bookChapter: BookChapter
+): number | undefined {
+  let cumulativeChapter = 0;
+
+  for (const book of scrBookData) {
+    if (book.shortName === bookChapter.shortName) {
+      if (bookChapter.chapter >= 1 && bookChapter.chapter <= book.chapters) {
+        return cumulativeChapter + bookChapter.chapter;
+      }
+      return undefined;
+    }
+    cumulativeChapter += book.chapters;
+  }
+
+  return undefined;
+}
