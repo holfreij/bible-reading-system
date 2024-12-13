@@ -24,7 +24,7 @@ async function extractAudioHashes(
 ): Promise<void> {
   const readUrls: string[] = scrBookData.flatMap((bookInfo) => {
     const urls: string[] = [];
-    for (let chapter = 1; chapter <= 2; chapter++) {
+    for (let chapter = 1; chapter <= bookInfo.chapters; chapter++) {
       urls.push(
         `https://www.bible.com/audio-bible/${translation.bibleNum}/${bookInfo.shortName}.${chapter}.${translation.shortName}`
       );
@@ -37,7 +37,7 @@ async function extractAudioHashes(
   const audioUrls = await Promise.all(
     readUrls.map(async (readUrl, index) => {
       try {
-        await delay(index * 2500);
+        await delay(index * 1500);
 
         const page = await browser.newPage();
 
@@ -52,6 +52,8 @@ async function extractAudioHashes(
         );
 
         await page.close();
+
+        console.log("URL found:", audioUrl);
 
         return audioUrl;
       } catch (error) {
