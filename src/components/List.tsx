@@ -74,15 +74,12 @@ const List = ({
             checked={openList === listNumber}
             onChange={() => onChangeOpenList(listNumber)}
           />
-          <div className="collapse-title flex items-center">
+          <div className="collapse-title flex items-center justify-between">
             <p className="text-xl font-medium">
               List {listNumber + 1}: {title}
             </p>
-            <p className="ml-4 text-sm font-sans flex-grow">
-              {`Next up: ${todaysReading.fullName} ${todaysReading.chapter}`}
-            </p>
             <p className="text-xl font-medium">
-              Day {bookmarks[listNumber] % totalChapters} of {totalChapters}
+              {bookmarks[listNumber] % totalChapters}/{totalChapters}
             </p>
           </div>
           <div className="collapse-content flex flex-col items-center">
