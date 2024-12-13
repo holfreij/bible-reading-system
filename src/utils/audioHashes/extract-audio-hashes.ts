@@ -37,7 +37,7 @@ async function extractAudioHashes(
   const audioUrls = await Promise.all(
     readUrls.map(async (readUrl, index) => {
       try {
-        await delay(index * 1500);
+        await delay(index * 1000);
 
         const page = await browser.newPage();
 
@@ -86,17 +86,13 @@ async function extractAudioHashes(
 }
 
 async function processTranslations() {
-  for (const translation of BibleTranslations.filter(
-    (translation) => translation.shortName !== "BB"
-  )) {
+  for (const translation of BibleTranslations) {
     try {
       await extractAudioHashes(translation);
     } catch (error) {
       console.error("Error:", error);
     }
   }
-
-  delay(5000);
 }
 
 processTranslations();
