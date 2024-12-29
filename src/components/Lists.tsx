@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useProfileData } from "../context/ProfileDataProvider";
 import List from "./List";
+import AudioControls from "./AudioControls";
 
 type ListInfo = {
   label: string;
@@ -92,17 +93,22 @@ const Lists = () => {
         "Please log in to load your bookmarks and set a preferred Bible Translation"
       ) : (
         <>
-          {!loading &&
-            lists.map((listInfo: ListInfo, index) => (
-              <List
-                key={listInfo.label}
-                listNumber={index}
-                title={listInfo.label}
-                booksShortNames={listInfo.books}
-                openList={openList}
-                onChangeOpenList={openListChangeHandler}
-              />
-            ))}
+          <div className="pb-[276px]">
+            {!loading &&
+              lists.map((listInfo: ListInfo, index) => (
+                <List
+                  key={listInfo.label}
+                  listNumber={index}
+                  title={listInfo.label}
+                  booksShortNames={listInfo.books}
+                  openList={openList}
+                  onChangeOpenList={openListChangeHandler}
+                />
+              ))}
+          </div>
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-auto shadow-lg z-50">
+            <AudioControls />
+          </div>
         </>
       )}
     </>
