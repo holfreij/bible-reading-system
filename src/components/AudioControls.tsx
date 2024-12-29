@@ -5,12 +5,45 @@ import {
   ChevronDownIcon,
   StopCircleIcon,
 } from "@heroicons/react/24/solid";
+import { useRef } from "react";
+import ReactAudioPlayer from "react-audio-player";
 
 const AudioControls = () => {
+  const audioPlayerRef = useRef<ReactAudioPlayer>(null);
+
+  // const handlePlay = () => {
+  //   audioPlayerRef.current?.audioEl.current?.play();
+  // };
+
+  // const handlePause = () => {
+  //   audioPlayerRef.current?.audioEl.current?.pause();
+  // };
+
+  // const handleSkipForward = () => {
+  //   if (audioPlayerRef.current?.audioEl.current) {
+  //     const currentTime = audioPlayerRef.current.audioEl.current.currentTime;
+  //     audioPlayerRef.current.audioEl.current.currentTime = currentTime + 10; // Skip 10 seconds forward
+  //   }
+  // };
+
+  // const handleSkipBackward = () => {
+  //   if (audioPlayerRef.current?.audioEl.current) {
+  //     const currentTime = audioPlayerRef.current.audioEl.current.currentTime;
+  //     audioPlayerRef.current.audioEl.current.currentTime = Math.max(
+  //       currentTime - 10,
+  //       0
+  //     ); // Skip 10 seconds backward, ensure not below 0
+  //   }
+  // };
+
   return (
     <div className="card bg-base-300 w-96 shadow-xl">
       <div className="card-body p-4">
         <div className="flex flex-col gap-2">
+          <ReactAudioPlayer
+            src="https://audio-bible-cdn.youversionapi.com/1943/32k/MAT/3-a223760f5975163bc362d44d0df0c532.mp3?version_id=1276"
+            ref={audioPlayerRef}
+          />
           <div className="text-center text-lg">
             Day XXX - List X - Matthew 1
           </div>
