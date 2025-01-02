@@ -23,10 +23,6 @@ const AudioControls = () => {
   const { audioObjects, removeAudioObject } = useAudioContext();
   const { bookmarks, setBookmarks } = useProfileData();
 
-  useEffect(() => {
-    console.log(audioObjects);
-  }, [audioObjects]);
-
   const handlePlayPause = () => {
     if (!isPlaying) audioPlayerRef.current?.audioEl.current?.play();
     else audioPlayerRef.current?.audioEl.current?.pause();
