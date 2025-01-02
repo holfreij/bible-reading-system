@@ -13,7 +13,7 @@ export default function Auth() {
       email,
       options: {
         emailRedirectTo: import.meta.env.PROD
-          ? "https://rolfheij.github.io/bible-reading-system"
+          ? "https://holfreij.github.io/bible-reading-system"
           : "http://localhost:5173/bible-reading-system/",
       },
     });
