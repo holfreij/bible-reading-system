@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   BookChapter,
   getBookInfo,
@@ -6,6 +6,7 @@ import {
   getTodaysReading,
 } from "../utils/scripture-utils";
 import { useProfileData } from "../context/ProfileDataProvider";
+import { useAudioContext } from "../context/AudioObjectDataProvider";
 
 type ListProps = {
   listNumber: number;
@@ -23,6 +24,7 @@ const List = ({
   onChangeOpenList,
 }: ListProps) => {
   const { bookmarks, setBookmarks, translation } = useProfileData();
+  const { addAudioObject } = useAudioContext();
 
   const bookFullNames: string = useMemo(() => {
     return booksShortNames
@@ -63,6 +65,16 @@ const List = ({
 
     return `https://audio-bible-cdn.youversionapi.com/${translation.audioBibleNum}/32k/${todaysReading.shortName}/${todaysReading.chapter}-${audioHash}.mp3?version_id=${translation.bibleNum}`;
   }, [todaysReading, translation]);
+
+  useEffect(() => {
+    addAudioObject({
+      url: listenUrl,
+      list: listNumber,
+      day: bookmarks ? bookmarks[listNumber] : 0,
+      book: todaysReading?.fullName || "Unknown book",
+      chapter: todaysReading?.chapter || 0,
+    });
+  }, [todaysReading]);
 
   return (
     <div className="collapse collapse-arrow bg-base-200">

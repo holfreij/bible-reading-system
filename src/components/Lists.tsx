@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useProfileData } from "../context/ProfileDataProvider";
 import List from "./List";
 import AudioControls from "./AudioControls";
+import { AudioProvider } from "../context/AudioObjectDataProvider";
 
 type ListInfo = {
   label: string;
@@ -81,14 +82,14 @@ const lists: ListInfo[] = [
 
 const Lists = () => {
   const { user, loading } = useProfileData();
-  const [openList, setOpenList] = useState<number>(0);
+  const [openList, setOpenList] = useState<number>(-1);
 
   const openListChangeHandler = (newValue: number) => {
     setOpenList(newValue % 10);
   };
 
   return (
-    <>
+    <AudioProvider>
       {!user ? (
         "Please log in to load your bookmarks and set a preferred Bible Translation"
       ) : (
@@ -111,7 +112,7 @@ const Lists = () => {
           </div>
         </>
       )}
-    </>
+    </AudioProvider>
   );
 };
 
