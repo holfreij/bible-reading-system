@@ -27,6 +27,7 @@ const AudioControls = () => {
     if (!isPlaying) audioPlayerRef.current?.audioEl.current?.play();
     else audioPlayerRef.current?.audioEl.current?.pause();
     setIsPlaying(!isPlaying);
+    setShouldPlay(!isPlaying);
   };
 
   const handleNext = () => {
@@ -58,8 +59,8 @@ const AudioControls = () => {
 
   const handleFinish = () => {
     if (!currentAudio) return;
-
     if (!bookmarks) return;
+
     let newBookmarks = [...bookmarks];
     newBookmarks[currentAudio.list] = newBookmarks[currentAudio.list] + 1;
     setBookmarks(newBookmarks);
@@ -79,6 +80,36 @@ const AudioControls = () => {
     if (!audioObjects || !audioObjects[audioIndex]) return undefined;
     return audioObjects[audioIndex];
   }, [audioObjects, audioIndex]);
+
+  // Media Session API integration
+  useEffect(() => {
+    if ("mediaSession" in navigator) {
+      const { mediaSession } = navigator;
+
+      // Set metadata
+      if (currentAudio) {
+        mediaSession.metadata = new MediaMetadata({
+          title: `${currentAudio.book} ${currentAudio.chapter}`,
+          artist: `God`,
+          album: `List ${currentAudio.list + 1} - Day ${currentAudio.day}`,
+        });
+      }
+
+      // Set action handlers
+      mediaSession.setActionHandler("play", () => {
+        handlePlayPause();
+      });
+      mediaSession.setActionHandler("pause", () => {
+        handlePlayPause();
+      });
+      mediaSession.setActionHandler("previoustrack", () => {
+        handlePrevious();
+      });
+      mediaSession.setActionHandler("nexttrack", () => {
+        handleNext();
+      });
+    }
+  }, [currentAudio, handlePlayPause, handleNext, handlePrevious]);
 
   useEffect(() => {
     if (shouldPlay) {
