@@ -215,7 +215,7 @@ const AudioControls = () => {
                         className="btn btn-primary flex justify-between"
                       >
                         <div>{`${track.book} ${track.chapter}`}</div>
-                        <div>{`List ${track.list} - Day ${track.day}`}</div>
+                        <div>{`List ${track.list + 1} - Day ${track.day}`}</div>
                       </div>
                     </li>
                   ))}
