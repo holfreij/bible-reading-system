@@ -207,7 +207,7 @@ const AudioControls = () => {
                 </div>
               </div>
               <div className="collapse-content ">
-                <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[600px]">
+                <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[400px]">
                   {audioObjects.map((track, index) => (
                     <li key={index}>
                       <div
