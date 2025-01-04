@@ -94,7 +94,7 @@ const Lists = () => {
         "Please log in to load your bookmarks and set a preferred Bible Translation"
       ) : (
         <>
-          <div className="flex flex-col gap-2 pb-[276px]">
+          <div className="flex flex-col gap-2 pb-[286px]">
             {!loading &&
               lists.map((listInfo: ListInfo, index) => (
                 <List
