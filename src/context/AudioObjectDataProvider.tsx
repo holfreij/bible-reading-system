@@ -30,10 +30,6 @@ export const AudioProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const addAudioObject = (newAudio: AudioObject) => {
     if (audioObjects.find((audio) => audio.url === newAudio.url)) return;
-    // const sortedAudioObjects = [...audioObjects, newAudio].sort(
-    //   sortAudioObjects
-    // );
-    // setAudioObjects(sortedAudioObjects);
     setAudioObjects((prev) => [...prev, newAudio].sort(sortAudioObjects));
   };
 

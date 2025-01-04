@@ -3,6 +3,8 @@ import {
   ForwardIcon,
   BackwardIcon,
   PauseCircleIcon,
+  QueueListIcon,
+  ChevronUpDownIcon,
 } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactAudioPlayer from "react-audio-player";
@@ -68,25 +70,19 @@ const AudioControls = () => {
     removeAudioObject(currentAudio);
   };
 
-  // Handle show queue
-
   // Add new chapter from list to queue when current one from list finishes
 
   // Clear queue on translation change or logout
-
-  // Handle auto play
 
   const currentAudio: AudioObject | undefined = useMemo(() => {
     if (!audioObjects || !audioObjects[audioIndex]) return undefined;
     return audioObjects[audioIndex];
   }, [audioObjects, audioIndex]);
 
-  // Media Session API integration
   useEffect(() => {
     if ("mediaSession" in navigator) {
       const { mediaSession } = navigator;
 
-      // Set metadata
       if (currentAudio) {
         mediaSession.metadata = new MediaMetadata({
           title: `${currentAudio.book} ${currentAudio.chapter}`,
@@ -95,7 +91,6 @@ const AudioControls = () => {
         });
       }
 
-      // Set action handlers
       mediaSession.setActionHandler("play", () => {
         handlePlayPause();
       });
@@ -148,7 +143,7 @@ const AudioControls = () => {
           />
           <div className="text-center text-lg">
             {currentAudio
-              ? `Day ${currentAudio.day} - List ${currentAudio.list + 1} - ${
+              ? `List ${currentAudio.list + 1} - Day ${currentAudio.day} - ${
                   currentAudio.book
                 } ${currentAudio.chapter}`
               : "Audio player unavailable"}
@@ -191,8 +186,8 @@ const AudioControls = () => {
               <ForwardIcon />
             </button>
           </div>
-          {/* <div className="flex justify-center gap-4">
-            <label className="grid cursor-pointer place-items-center">
+          <div className="flex justify-center gap-4">
+            {/* <label className="grid cursor-pointer place-items-center">
               <input
                 type="checkbox"
                 value="synthwave"
@@ -200,11 +195,34 @@ const AudioControls = () => {
               />
               <StopCircleIcon className="stroke-base-100 fill-base-100 col-start-1 row-start-1" />
               <PlayCircleIcon className="stroke-base-100 fill-base-100 col-start-2 row-start-1" />
-            </label>
-            <button className="btn btn-circle w-8">
-              <ChevronDownIcon />
-            </button>
-          </div> */}
+            </label> */}
+
+            <div className="bg-base-200 collapse">
+              <input type="checkbox" className="peer" />
+              <div className="collapse-title pr-4">
+                <div className="flex justify-between items-center">
+                  <QueueListIcon className="h-8" />
+                  Queue
+                  <ChevronUpDownIcon className="h-8" />
+                </div>
+              </div>
+              <div className="collapse-content ">
+                <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[600px]">
+                  {audioObjects.map((track, index) => (
+                    <li key={index}>
+                      <div
+                        onClick={() => setAudioIndex(index)}
+                        className="btn btn-primary flex justify-between"
+                      >
+                        <div>{`${track.book} ${track.chapter}`}</div>
+                        <div>{`List ${track.list} - Day ${track.day}`}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
