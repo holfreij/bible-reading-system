@@ -63,16 +63,22 @@ const AudioControls = () => {
     if (!currentAudio) return;
     if (!bookmarks) return;
 
-    let newBookmarks = [...bookmarks];
+    const newBookmarks = [...bookmarks];
     newBookmarks[currentAudio.list] = newBookmarks[currentAudio.list] + 1;
     setBookmarks(newBookmarks);
 
+    const removedIndex = audioObjects.indexOf(currentAudio);
     removeAudioObject(currentAudio);
+
+    // Adjust audioIndex to stay valid after removal
+    setAudioIndex((prev) => {
+      const newLength = audioObjects.length - 1;
+      if (newLength === 0) return 0;
+      if (removedIndex < prev) return prev - 1;
+      if (prev >= newLength) return newLength - 1;
+      return prev;
+    });
   };
-
-  // Add new chapter from list to queue when current one from list finishes
-
-  // Clear queue on translation change or logout
 
   const currentAudio: AudioObject | undefined = useMemo(() => {
     if (!audioObjects || !audioObjects[audioIndex]) return undefined;
@@ -116,6 +122,8 @@ const AudioControls = () => {
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
+    if (!isPlaying) return;
+
     let animationFrameId: number;
 
     const updateTime = () => {
@@ -125,12 +133,10 @@ const AudioControls = () => {
       animationFrameId = requestAnimationFrame(updateTime);
     };
 
-    // Start updating time when the component mounts
     animationFrameId = requestAnimationFrame(updateTime);
 
-    // Cleanup on unmount
     return () => cancelAnimationFrame(animationFrameId);
-  }, [audioPlayerRef, audioPlayerRef.current?.audioEl]);
+  }, [isPlaying]);
 
   return (
     <div className="card bg-base-300 w-96 shadow-xl">
@@ -173,30 +179,29 @@ const AudioControls = () => {
             </div>
           </div>
           <div className="flex justify-center min-h-20 items-center gap-8">
-            <button className="btn btn-circle" onClick={handlePrevious}>
+            <button
+              className="btn btn-circle"
+              onClick={handlePrevious}
+              aria-label="Previous"
+            >
               <BackwardIcon />
             </button>
             <button
               className="btn btn-circle w-20 h-20"
               onClick={handlePlayPause}
+              aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? <PauseCircleIcon /> : <PlayCircleIcon />}{" "}
             </button>
-            <button className="btn btn-circle" onClick={handleNext}>
+            <button
+              className="btn btn-circle"
+              onClick={handleNext}
+              aria-label="Next"
+            >
               <ForwardIcon />
             </button>
           </div>
           <div className="flex justify-center gap-4">
-            {/* <label className="grid cursor-pointer place-items-center">
-              <input
-                type="checkbox"
-                value="synthwave"
-                className="toggle bg-base-content col-span-2 col-start-1 row-start-1"
-              />
-              <StopCircleIcon className="stroke-base-100 fill-base-100 col-start-1 row-start-1" />
-              <PlayCircleIcon className="stroke-base-100 fill-base-100 col-start-2 row-start-1" />
-            </label> */}
-
             <div className="bg-base-200 collapse">
               <input type="checkbox" className="peer" />
               <div className="collapse-title pr-4">
@@ -210,13 +215,13 @@ const AudioControls = () => {
                 <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[400px]">
                   {audioObjects.map((track, index) => (
                     <li key={index}>
-                      <div
+                      <button
                         onClick={() => setAudioIndex(index)}
-                        className="btn btn-primary flex justify-between"
+                        className="btn btn-primary flex justify-between w-full"
                       >
-                        <div>{`${track.book} ${track.chapter}`}</div>
-                        <div>{`List ${track.list + 1} - Day ${track.day}`}</div>
-                      </div>
+                        <span>{`${track.book} ${track.chapter}`}</span>
+                        <span>{`List ${track.list + 1} - Day ${track.day}`}</span>
+                      </button>
                     </li>
                   ))}
                 </ul>

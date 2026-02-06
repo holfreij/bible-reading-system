@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BookChapter,
   getBookInfo,
@@ -7,6 +7,7 @@ import {
 } from "../utils/scripture-utils";
 import { useProfileData } from "../context/ProfileDataProvider";
 import { useAudioContext } from "../context/AudioObjectDataProvider";
+import { loadTranslationHashes } from "../utils/bible-translation";
 
 type ListProps = {
   listNumber: number;
@@ -47,34 +48,49 @@ const List = ({
 
   const moveBookmark = (): void => {
     if (!bookmarks) return;
-    let newBookmarks = [...bookmarks];
+    const newBookmarks = [...bookmarks];
     newBookmarks[listNumber] = newBookmarks[listNumber] + 1;
     setBookmarks(newBookmarks);
   };
 
-  const listenUrl: string = useMemo(() => {
-    if (!todaysReading || !translation) return "";
-
-    const siteUrl = `https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`;
-
-    const globalChapterNumber = getGlobalChapterNumber(todaysReading);
-    if (!globalChapterNumber) return siteUrl;
-
-    const audioHash = translation.hashes[globalChapterNumber - 1];
-    if (!audioHash) return siteUrl;
-
-    return `https://audio-bible-cdn.youversionapi.com/${translation.audioBibleNum}/32k/${todaysReading.shortName}/${todaysReading.chapter}-${audioHash}.mp3?version_id=${translation.bibleNum}`;
-  }, [todaysReading, translation]);
+  const [listenUrl, setListenUrl] = useState<string>("");
 
   useEffect(() => {
+    if (!todaysReading || !translation) {
+      setListenUrl("");
+      return;
+    }
+
+    const siteUrl = `https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation.shortName}`;
+
+    const globalChapterNumber = getGlobalChapterNumber(todaysReading);
+    if (!globalChapterNumber) {
+      setListenUrl(siteUrl);
+      return;
+    }
+
+    loadTranslationHashes(translation.shortName).then((hashes) => {
+      const audioHash = hashes[globalChapterNumber - 1];
+      if (!audioHash) {
+        setListenUrl(siteUrl);
+        return;
+      }
+      setListenUrl(
+        `https://audio-bible-cdn.youversionapi.com/${translation.audioBibleNum}/32k/${todaysReading.shortName}/${todaysReading.chapter}-${audioHash}.mp3?version_id=${translation.bibleNum}`
+      );
+    });
+  }, [todaysReading, translation]);
+
+  const handleAddToQueue = () => {
+    if (!todaysReading) return;
     addAudioObject({
       url: listenUrl,
       list: listNumber,
       day: bookmarks ? bookmarks[listNumber] : 0,
-      book: todaysReading?.fullName || "Unknown book",
-      chapter: todaysReading?.chapter || 0,
+      book: todaysReading.fullName,
+      chapter: todaysReading.chapter,
     });
-  }, [todaysReading]);
+  };
 
   return (
     <div className="collapse collapse-arrow bg-base-200">
@@ -101,13 +117,16 @@ const List = ({
               <div className="flex gap-2 m-2">
                 <a
                   className="btn btn-primary"
-                  href={`https://www.bible.com/bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation?.shortName}`}
+                  href={`https://www.bible.com/bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation.shortName}`}
                 >
                   Read
                 </a>
-                {/* <a className="btn md:inline-flex btn-primary" href={listenUrl}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleAddToQueue}
+                >
                   Listen
-                </a> */}
+                </button>
                 <button
                   className="btn btn-success"
                   onClick={() => {

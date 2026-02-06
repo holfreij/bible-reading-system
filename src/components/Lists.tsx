@@ -81,7 +81,7 @@ const lists: ListInfo[] = [
 ];
 
 const Lists = () => {
-  const { user, loading } = useProfileData();
+  const { user, loading, fetchError } = useProfileData();
   const [openList, setOpenList] = useState<number>(-1);
 
   const openListChangeHandler = (newValue: number) => {
@@ -94,6 +94,11 @@ const Lists = () => {
         "Please log in to load your bookmarks and set a preferred Bible Translation"
       ) : (
         <>
+          {fetchError && (
+            <div className="alert alert-error">
+              <span>Failed to load profile: {fetchError}</span>
+            </div>
+          )}
           <div className="flex flex-col gap-2 pb-[286px]">
             {!loading &&
               lists.map((listInfo: ListInfo, index) => (

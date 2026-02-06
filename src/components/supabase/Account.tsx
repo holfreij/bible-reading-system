@@ -80,7 +80,7 @@ export default function Account() {
                       id={`bookmark${index}`}
                       type="number"
                       min={0}
-                      max={250}
+                      max={99999}
                       required
                       value={bookmark}
                       onChange={(event) =>
