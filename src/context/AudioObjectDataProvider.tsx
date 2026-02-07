@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, FC } from "react";
+import { useToast } from "./ToastProvider";
 
 export type AudioObject = {
   url: string;
@@ -27,10 +28,15 @@ const sortAudioObjects = (a: AudioObject, b: AudioObject): number => {
 
 export const AudioProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [audioObjects, setAudioObjects] = useState<AudioObject[]>([]);
+  const { addToast } = useToast();
 
   const addAudioObject = (newAudio: AudioObject) => {
-    if (audioObjects.find((audio) => audio.url === newAudio.url)) return;
+    if (audioObjects.find((audio) => audio.url === newAudio.url)) {
+      addToast("Already in queue", "info");
+      return;
+    }
     setAudioObjects((prev) => [...prev, newAudio].sort(sortAudioObjects));
+    addToast(`Added ${newAudio.book} ${newAudio.chapter} to queue`, "success");
   };
 
   const removeAudioObject = (removeAudio: AudioObject) => {

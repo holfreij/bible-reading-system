@@ -13,6 +13,7 @@ import {
   BibleTranslation,
   BibleTranslations,
 } from "../utils/bible-translation";
+import { useToast } from "./ToastProvider";
 
 export type TranslationInfo = Omit<BibleTranslation, "hashes">;
 
@@ -52,6 +53,7 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string | undefined>(undefined);
 
+  const { addToast } = useToast();
   const [user, setUser] = useState<User | undefined>(undefined);
   const hasFetched = useRef(false);
 
@@ -140,8 +142,9 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.from("profiles").upsert(updates);
     if (error) {
       console.error("Error updating profile:", error.message);
+      addToast("Failed to save profile", "error");
     }
-  }, [user, bookmarks, translation]);
+  }, [user, bookmarks, translation, addToast]);
 
   useEffect(() => {
     if (!hasFetched.current) return;

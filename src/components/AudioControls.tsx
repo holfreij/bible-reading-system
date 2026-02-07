@@ -13,15 +13,21 @@ import {
 } from "../context/AudioObjectDataProvider";
 import { formatTime } from "../utils/audio-utils";
 import { useProfileData } from "../context/ProfileDataProvider";
+import { useToast } from "../context/ToastProvider";
+
+const PLAYBACK_SPEEDS = [1, 1.25, 1.5, 2] as const;
+type PlaybackSpeed = (typeof PLAYBACK_SPEEDS)[number];
 
 const AudioControls = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const [audioIndex, setAudioIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [playbackRate, setPlaybackRate] = useState<PlaybackSpeed>(1);
 
   const { audioObjects, removeAudioObject } = useAudioContext();
   const { bookmarks, setBookmarks } = useProfileData();
+  const { addToast } = useToast();
 
   const [currentTime, setCurrentTime] = useState(0);
 
@@ -66,6 +72,10 @@ const AudioControls = () => {
     const newBookmarks = [...bookmarks];
     newBookmarks[currentAudio.list] = newBookmarks[currentAudio.list] + 1;
     setBookmarks(newBookmarks);
+    addToast(
+      `Completed ${currentAudio.book} ${currentAudio.chapter}`,
+      "success"
+    );
 
     const removedIndex = audioObjects.indexOf(currentAudio);
     removeAudioObject(currentAudio);
@@ -78,7 +88,14 @@ const AudioControls = () => {
       if (prev >= newLength) return newLength - 1;
       return prev;
     });
-  }, [currentAudio, bookmarks, setBookmarks, audioObjects, removeAudioObject]);
+  }, [
+    currentAudio,
+    bookmarks,
+    setBookmarks,
+    audioObjects,
+    removeAudioObject,
+    addToast,
+  ]);
 
   useEffect(() => {
     if ("mediaSession" in navigator) {
@@ -113,6 +130,12 @@ const AudioControls = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAudio]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate, currentAudio]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -186,6 +209,21 @@ const AudioControls = () => {
               aria-label="Next"
             >
               <ForwardIcon />
+            </button>
+          </div>
+          <div className="flex justify-center">
+            <button
+              className="btn btn-sm btn-ghost"
+              onClick={() =>
+                setPlaybackRate((prev) => {
+                  const index = PLAYBACK_SPEEDS.indexOf(prev);
+                  return PLAYBACK_SPEEDS[(index + 1) % PLAYBACK_SPEEDS.length];
+                })
+              }
+              disabled={!currentAudio}
+              aria-label="Playback speed"
+            >
+              {playbackRate}x
             </button>
           </div>
           <div className="flex justify-center gap-4">

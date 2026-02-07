@@ -40,6 +40,11 @@ const List = ({
     );
   }, [booksShortNames]);
 
+  const currentChapter = useMemo(() => {
+    if (!bookmarks) return 0;
+    return ((bookmarks[listNumber] - 1) % totalChapters) + 1;
+  }, [bookmarks, listNumber, totalChapters]);
+
   const todaysReading: BookChapter | undefined = useMemo(() => {
     return bookmarks
       ? getTodaysReading(bookmarks[listNumber], booksShortNames)
@@ -113,13 +118,23 @@ const List = ({
             checked={openList === listNumber}
             onChange={() => onChangeOpenList(listNumber)}
           />
-          <div className="collapse-title flex items-center justify-between">
-            <p className="text-xl font-medium">
-              List {listNumber + 1}: {title}
-            </p>
-            <p className="text-xl font-medium">
-              {bookmarks[listNumber] % totalChapters}/{totalChapters}
-            </p>
+          <div className="collapse-title">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <p className="text-xl font-medium">
+                  List {listNumber + 1}: {title}
+                </p>
+                <p className="text-sm">
+                  {currentChapter}/{totalChapters}
+                </p>
+              </div>
+              <progress
+                className="progress progress-primary w-full"
+                value={currentChapter}
+                max={totalChapters}
+                aria-label={`List ${listNumber + 1} progress`}
+              />
+            </div>
           </div>
           <div className="collapse-content flex flex-col items-center">
             <p>Today's reading:</p>

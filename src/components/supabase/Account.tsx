@@ -1,13 +1,16 @@
 import { BibleTranslations } from "../../utils/bible-translation";
 import { useProfileData } from "../../context/ProfileDataProvider";
+import { useToast } from "../../context/ToastProvider";
 import { supabase } from "../../utils/supabase-client";
 
 export default function Account() {
   const { bookmarks, setBookmarks, translation, setTranslation, user } =
     useProfileData();
+  const { addToast } = useToast();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    addToast("Signed out", "info");
   };
 
   const handleBookmarkChange = (index: number, value: number) => {
