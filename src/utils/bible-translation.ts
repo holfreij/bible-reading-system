@@ -1,10 +1,3 @@
-import { BB_hashes } from "./audioHashes/BB";
-import { ESV_hashes } from "./audioHashes/ESV";
-import { HSV_hashes } from "./audioHashes/HSV";
-import { NASB_hashes } from "./audioHashes/NASB";
-import { NIV_hashes } from "./audioHashes/NIV";
-import { NKJV_hashes } from "./audioHashes/NKJV";
-
 export type BibleTranslation = {
   shortName: string;
   fullName: string;
@@ -14,14 +7,18 @@ export type BibleTranslation = {
   hashes: string[];
 };
 
-export const BibleTranslations: BibleTranslation[] = [
+type BibleTranslationConfig = Omit<BibleTranslation, "hashes"> & {
+  loadHashes: () => Promise<string[]>;
+};
+
+const translationConfigs: BibleTranslationConfig[] = [
   {
     shortName: "ESV",
     fullName: "English Standard Version",
     language: "English",
     bibleNum: 59,
     audioBibleNum: 1,
-    hashes: ESV_hashes,
+    loadHashes: () => import("./audioHashes/ESV").then((m) => m.ESV_hashes),
   },
   {
     shortName: "NASB",
@@ -29,7 +26,7 @@ export const BibleTranslations: BibleTranslation[] = [
     language: "English",
     bibleNum: 2692,
     audioBibleNum: 2468,
-    hashes: NASB_hashes,
+    loadHashes: () => import("./audioHashes/NASB").then((m) => m.NASB_hashes),
   },
   {
     shortName: "NIV",
@@ -37,7 +34,7 @@ export const BibleTranslations: BibleTranslation[] = [
     language: "English",
     bibleNum: 111,
     audioBibleNum: 3,
-    hashes: NIV_hashes,
+    loadHashes: () => import("./audioHashes/NIV").then((m) => m.NIV_hashes),
   },
   {
     shortName: "NKJV",
@@ -45,7 +42,7 @@ export const BibleTranslations: BibleTranslation[] = [
     language: "English",
     bibleNum: 114,
     audioBibleNum: 2332,
-    hashes: NKJV_hashes,
+    loadHashes: () => import("./audioHashes/NKJV").then((m) => m.NKJV_hashes),
   },
   {
     shortName: "HSV",
@@ -53,7 +50,7 @@ export const BibleTranslations: BibleTranslation[] = [
     language: "Dutch",
     bibleNum: 1990,
     audioBibleNum: 621,
-    hashes: HSV_hashes,
+    loadHashes: () => import("./audioHashes/HSV").then((m) => m.HSV_hashes),
   },
   {
     shortName: "BB",
@@ -61,6 +58,27 @@ export const BibleTranslations: BibleTranslation[] = [
     language: "Dutch",
     bibleNum: 1276,
     audioBibleNum: 1943,
-    hashes: BB_hashes,
+    loadHashes: () => import("./audioHashes/BB").then((m) => m.BB_hashes),
   },
 ];
+
+const hashCache = new Map<string, string[]>();
+
+export async function loadTranslationHashes(
+  shortName: string
+): Promise<string[]> {
+  const cached = hashCache.get(shortName);
+  if (cached) return cached;
+
+  const config = translationConfigs.find((t) => t.shortName === shortName);
+  if (!config) return [];
+
+  const hashes = await config.loadHashes();
+  hashCache.set(shortName, hashes);
+  return hashes;
+}
+
+// BibleTranslations without hashes for UI display (dropdowns, etc.)
+export const BibleTranslations: Omit<BibleTranslation, "hashes">[] =
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  translationConfigs.map(({ loadHashes, ...rest }) => rest);

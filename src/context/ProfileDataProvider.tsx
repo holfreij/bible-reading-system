@@ -1,15 +1,21 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
   useEffect,
+  useRef,
   ReactNode,
 } from "react";
+import { AuthSession } from "@supabase/supabase-js";
 import { supabase } from "../utils/supabase-client";
 import {
   BibleTranslation,
   BibleTranslations,
 } from "../utils/bible-translation";
+import { useToast } from "./ToastProvider";
+
+export type TranslationInfo = Omit<BibleTranslation, "hashes">;
 
 export type User = {
   email: string;
@@ -19,17 +25,18 @@ export type User = {
 interface ProfileDataContextProps {
   bookmarks: number[] | undefined;
   setBookmarks: (bookmarks: number[]) => void;
-  translation: BibleTranslation | undefined;
-  setTranslation: (translation: BibleTranslation) => void;
+  translation: TranslationInfo | undefined;
+  setTranslation: (translation: TranslationInfo) => void;
   user: User | undefined;
   loading: boolean;
+  fetchError: string | undefined;
 }
 
 const ProfileDataContext = createContext<ProfileDataContextProps | undefined>(
   undefined
 );
 
-const setNewUser = (
+const shouldUpdateUser = (
   currentUser: User | undefined,
   newUser: User | undefined
 ): boolean => {
@@ -40,22 +47,25 @@ const setNewUser = (
 
 export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
   const [bookmarks, setBookmarks] = useState<number[] | undefined>(undefined);
-  const [translation, setTranslation] = useState<BibleTranslation | undefined>(
+  const [translation, setTranslation] = useState<TranslationInfo | undefined>(
     BibleTranslations[0]
   );
   const [loading, setLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | undefined>(undefined);
 
+  const { addToast } = useToast();
   const [user, setUser] = useState<User | undefined>(undefined);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    const updateUser = (session: any) => {
+    const updateUser = (session: AuthSession | null) => {
       const sessionUser: User | undefined =
         session?.user && session.user.email && session.user.id
           ? { email: session.user.email, id: session.user.id }
           : undefined;
 
       setUser((currentUser) => {
-        if (setNewUser(currentUser, sessionUser)) {
+        if (shouldUpdateUser(currentUser, sessionUser)) {
           return sessionUser;
         }
         return currentUser;
@@ -73,20 +83,27 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return () => {
-      authStateListener?.subscription.unsubscribe(); // Clean up the listener
+      authStateListener?.subscription.unsubscribe();
     };
   }, []);
 
   useEffect(() => {
     async function fetchProfile() {
       if (!user) return;
+      hasFetched.current = false;
       setLoading(true);
+      setFetchError(undefined);
 
       const { data, error } = await supabase
         .from("profiles")
         .select("username, bookmarks, translation")
         .eq("id", user.id)
         .single();
+
+      if (error) {
+        console.error("Error fetching profile:", error.message);
+        setFetchError(error.message);
+      }
 
       if (!error && data) {
         setBookmarks(data.bookmarks || undefined);
@@ -97,6 +114,7 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
         );
       }
 
+      hasFetched.current = true;
       setLoading(false);
     }
 
@@ -104,18 +122,14 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      const syncData = async () => {
-        if (!user?.id) return;
-        await updateProfile();
-      };
-      syncData();
-    }, 500);
+    if (!user) {
+      setBookmarks(undefined);
+      setTranslation(BibleTranslations[0]);
+      hasFetched.current = false;
+    }
+  }, [user]);
 
-    return () => clearTimeout(debounceTimer);
-  }, [bookmarks, translation]);
-
-  const updateProfile = async () => {
+  const updateProfile = useCallback(async () => {
     if (!user) return;
 
     const updates = {
@@ -128,8 +142,19 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.from("profiles").upsert(updates);
     if (error) {
       console.error("Error updating profile:", error.message);
+      addToast("Failed to save profile", "error");
     }
-  };
+  }, [user, bookmarks, translation, addToast]);
+
+  useEffect(() => {
+    if (!hasFetched.current) return;
+
+    const debounceTimer = setTimeout(() => {
+      updateProfile();
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [updateProfile]);
 
   return (
     <ProfileDataContext.Provider
@@ -140,6 +165,7 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
         setTranslation,
         user,
         loading,
+        fetchError,
       }}
     >
       {children}

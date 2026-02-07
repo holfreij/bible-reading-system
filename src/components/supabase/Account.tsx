@@ -1,10 +1,17 @@
 import { BibleTranslations } from "../../utils/bible-translation";
 import { useProfileData } from "../../context/ProfileDataProvider";
+import { useToast } from "../../context/ToastProvider";
 import { supabase } from "../../utils/supabase-client";
 
 export default function Account() {
   const { bookmarks, setBookmarks, translation, setTranslation, user } =
     useProfileData();
+  const { addToast } = useToast();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    addToast("Signed out", "info");
+  };
 
   const handleBookmarkChange = (index: number, value: number) => {
     const updatedBookmarks = bookmarks ? [...bookmarks] : [];
@@ -80,7 +87,7 @@ export default function Account() {
                       id={`bookmark${index}`}
                       type="number"
                       min={0}
-                      max={250}
+                      max={99999}
                       required
                       value={bookmark}
                       onChange={(event) =>
@@ -94,10 +101,7 @@ export default function Account() {
               <button
                 className="btn btn-error btn-outline"
                 type="button"
-                onClick={() => {
-                  supabase.auth.signOut();
-                  setBookmarks([]);
-                }}
+                onClick={handleSignOut}
               >
                 Sign Out
               </button>

@@ -6,78 +6,96 @@ import {
   QueueListIcon,
   ChevronUpDownIcon,
 } from "@heroicons/react/24/solid";
-import { useEffect, useMemo, useRef, useState } from "react";
-import ReactAudioPlayer from "react-audio-player";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AudioObject,
   useAudioContext,
 } from "../context/AudioObjectDataProvider";
 import { formatTime } from "../utils/audio-utils";
 import { useProfileData } from "../context/ProfileDataProvider";
+import { useToast } from "../context/ToastProvider";
+
+const PLAYBACK_SPEEDS = [1, 1.25, 1.5, 2] as const;
+type PlaybackSpeed = (typeof PLAYBACK_SPEEDS)[number];
 
 const AudioControls = () => {
-  const audioPlayerRef = useRef<ReactAudioPlayer>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const [audioIndex, setAudioIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [shouldPlay, setShouldPlay] = useState<boolean>(false);
+  const [playbackRate, setPlaybackRate] = useState<PlaybackSpeed>(1);
 
   const { audioObjects, removeAudioObject } = useAudioContext();
   const { bookmarks, setBookmarks } = useProfileData();
+  const { addToast } = useToast();
 
-  const handlePlayPause = () => {
-    if (!isPlaying) audioPlayerRef.current?.audioEl.current?.play();
-    else audioPlayerRef.current?.audioEl.current?.pause();
+  const [currentTime, setCurrentTime] = useState(0);
+
+  const currentAudio: AudioObject | undefined = useMemo(() => {
+    if (!audioObjects || !audioObjects[audioIndex]) return undefined;
+    return audioObjects[audioIndex];
+  }, [audioObjects, audioIndex]);
+
+  const handlePlayPause = useCallback(() => {
+    if (!currentAudio) return;
+    if (!isPlaying) audioRef.current?.play();
+    else audioRef.current?.pause();
     setIsPlaying(!isPlaying);
-    setShouldPlay(!isPlaying);
-  };
+  }, [isPlaying, currentAudio]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!audioObjects || !audioObjects[audioIndex]) return;
-
     if (audioIndex === audioObjects.length - 1) return;
 
     setAudioIndex((prev) => prev + 1);
-    setShouldPlay(true);
-  };
+    setIsPlaying(true);
+  }, [audioObjects, audioIndex]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (!audioObjects || !audioObjects[audioIndex]) return;
 
-    if (
-      currentTime > 2 &&
-      audioPlayerRef.current &&
-      audioPlayerRef.current.audioEl.current
-    ) {
-      audioPlayerRef.current.audioEl.current.currentTime = 0;
+    if (currentTime > 2 && audioRef.current) {
+      audioRef.current.currentTime = 0;
       return;
     }
 
     if (audioIndex === 0) return;
 
     setAudioIndex((prev) => prev - 1);
-    setShouldPlay(true);
-  };
+    setIsPlaying(true);
+  }, [audioObjects, audioIndex, currentTime]);
 
-  const handleFinish = () => {
+  const handleFinish = useCallback(() => {
     if (!currentAudio) return;
     if (!bookmarks) return;
 
-    let newBookmarks = [...bookmarks];
+    const newBookmarks = [...bookmarks];
     newBookmarks[currentAudio.list] = newBookmarks[currentAudio.list] + 1;
     setBookmarks(newBookmarks);
+    addToast(
+      `Completed ${currentAudio.book} ${currentAudio.chapter}`,
+      "success"
+    );
 
+    const removedIndex = audioObjects.indexOf(currentAudio);
     removeAudioObject(currentAudio);
-  };
 
-  // Add new chapter from list to queue when current one from list finishes
-
-  // Clear queue on translation change or logout
-
-  const currentAudio: AudioObject | undefined = useMemo(() => {
-    if (!audioObjects || !audioObjects[audioIndex]) return undefined;
-    return audioObjects[audioIndex];
-  }, [audioObjects, audioIndex]);
+    // Adjust audioIndex to stay valid after removal
+    setAudioIndex((prev) => {
+      const newLength = audioObjects.length - 1;
+      if (newLength === 0) return 0;
+      if (removedIndex < prev) return prev - 1;
+      if (prev >= newLength) return newLength - 1;
+      return prev;
+    });
+  }, [
+    currentAudio,
+    bookmarks,
+    setBookmarks,
+    audioObjects,
+    removeAudioObject,
+    addToast,
+  ]);
 
   useEffect(() => {
     if ("mediaSession" in navigator) {
@@ -107,96 +125,108 @@ const AudioControls = () => {
   }, [currentAudio, handlePlayPause, handleNext, handlePrevious]);
 
   useEffect(() => {
-    if (shouldPlay) {
-      audioPlayerRef.current?.audioEl.current?.play();
-      setIsPlaying(true);
+    if (isPlaying) {
+      audioRef.current?.play();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAudio]);
 
-  const [currentTime, setCurrentTime] = useState(0);
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate, currentAudio]);
 
   useEffect(() => {
+    if (!isPlaying) return;
+
     let animationFrameId: number;
 
     const updateTime = () => {
-      const currentTime =
-        audioPlayerRef.current?.audioEl.current?.currentTime || 0;
+      const currentTime = audioRef.current?.currentTime || 0;
       setCurrentTime(currentTime);
       animationFrameId = requestAnimationFrame(updateTime);
     };
 
-    // Start updating time when the component mounts
     animationFrameId = requestAnimationFrame(updateTime);
 
-    // Cleanup on unmount
     return () => cancelAnimationFrame(animationFrameId);
-  }, [audioPlayerRef, audioPlayerRef.current?.audioEl]);
+  }, [isPlaying]);
 
   return (
-    <div className="card bg-base-300 w-96 shadow-xl">
+    <div className="card bg-base-300 w-full max-w-96 shadow-xl">
       <div className="card-body p-4">
         <div className="flex flex-col gap-2">
-          <ReactAudioPlayer
-            onEnded={handleFinish}
+          <audio
+            ref={audioRef}
             src={currentAudio ? currentAudio.url : ""}
-            ref={audioPlayerRef}
+            onEnded={handleFinish}
           />
           <div className="text-center text-lg">
             {currentAudio
               ? `List ${currentAudio.list + 1} - Day ${currentAudio.day} - ${
                   currentAudio.book
                 } ${currentAudio.chapter}`
-              : "Audio player unavailable"}
+              : 'Press "Listen" on a reading to add to queue'}
           </div>
           <input
             type="range"
             min={0}
-            max={audioPlayerRef.current?.audioEl.current?.duration || 0}
+            max={audioRef.current?.duration || 0}
             value={currentTime}
             onChange={(event) => {
-              if (
-                !audioPlayerRef ||
-                !audioPlayerRef.current ||
-                !audioPlayerRef.current.audioEl ||
-                !audioPlayerRef.current.audioEl.current
-              )
-                return;
-              audioPlayerRef.current.audioEl.current.currentTime =
-                +event.target.value;
+              if (!audioRef.current) return;
+              audioRef.current.currentTime = +event.target.value;
             }}
             className="range range-xs"
+            aria-label="Seek"
           />
           <div className="flex justify-between">
             <div>{formatTime(currentTime)}</div>
-            <div>
-              {formatTime(audioPlayerRef.current?.audioEl.current?.duration)}
-            </div>
+            <div>{formatTime(audioRef.current?.duration)}</div>
           </div>
           <div className="flex justify-center min-h-20 items-center gap-8">
-            <button className="btn btn-circle" onClick={handlePrevious}>
+            <button
+              className="btn btn-circle"
+              onClick={handlePrevious}
+              disabled={!currentAudio}
+              aria-label="Previous"
+            >
               <BackwardIcon />
             </button>
             <button
               className="btn btn-circle w-20 h-20"
               onClick={handlePlayPause}
+              disabled={!currentAudio}
+              aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? <PauseCircleIcon /> : <PlayCircleIcon />}{" "}
             </button>
-            <button className="btn btn-circle" onClick={handleNext}>
+            <button
+              className="btn btn-circle"
+              onClick={handleNext}
+              disabled={!currentAudio}
+              aria-label="Next"
+            >
               <ForwardIcon />
             </button>
           </div>
+          <div className="flex justify-center">
+            <button
+              className="btn btn-sm btn-ghost"
+              onClick={() =>
+                setPlaybackRate((prev) => {
+                  const index = PLAYBACK_SPEEDS.indexOf(prev);
+                  return PLAYBACK_SPEEDS[(index + 1) % PLAYBACK_SPEEDS.length];
+                })
+              }
+              disabled={!currentAudio}
+              aria-label="Playback speed"
+            >
+              {playbackRate}x
+            </button>
+          </div>
           <div className="flex justify-center gap-4">
-            {/* <label className="grid cursor-pointer place-items-center">
-              <input
-                type="checkbox"
-                value="synthwave"
-                className="toggle bg-base-content col-span-2 col-start-1 row-start-1"
-              />
-              <StopCircleIcon className="stroke-base-100 fill-base-100 col-start-1 row-start-1" />
-              <PlayCircleIcon className="stroke-base-100 fill-base-100 col-start-2 row-start-1" />
-            </label> */}
-
             <div className="bg-base-200 collapse">
               <input type="checkbox" className="peer" />
               <div className="collapse-title pr-4">
@@ -210,13 +240,13 @@ const AudioControls = () => {
                 <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[400px]">
                   {audioObjects.map((track, index) => (
                     <li key={index}>
-                      <div
+                      <button
                         onClick={() => setAudioIndex(index)}
-                        className="btn btn-primary flex justify-between"
+                        className="btn btn-primary flex justify-between w-full"
                       >
-                        <div>{`${track.book} ${track.chapter}`}</div>
-                        <div>{`List ${track.list + 1} - Day ${track.day}`}</div>
-                      </div>
+                        <span>{`${track.book} ${track.chapter}`}</span>
+                        <span>{`List ${track.list + 1} - Day ${track.day}`}</span>
+                      </button>
                     </li>
                   ))}
                 </ul>

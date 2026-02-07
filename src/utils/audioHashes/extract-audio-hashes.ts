@@ -6,6 +6,8 @@ import puppeteer from "puppeteer";
 import { scrBookData } from "../scripture-utils";
 import { BibleTranslation, BibleTranslations } from "../bible-translation";
 
+type TranslationConfig = Omit<BibleTranslation, "hashes">;
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -20,7 +22,7 @@ function extractHashesFromUrls(urls: string[]): string[] {
 }
 
 async function extractAudioHashes(
-  translation: BibleTranslation
+  translation: TranslationConfig
 ): Promise<void> {
   const readUrls: string[] = scrBookData.flatMap((bookInfo) => {
     const urls: string[] = [];
