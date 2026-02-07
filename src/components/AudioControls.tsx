@@ -18,6 +18,40 @@ import { useToast } from "../context/ToastProvider";
 const PLAYBACK_SPEEDS = [1, 1.25, 1.5, 2] as const;
 type PlaybackSpeed = (typeof PLAYBACK_SPEEDS)[number];
 
+const QueueItem = ({
+  track,
+  index,
+  onSelect,
+}: {
+  track: AudioObject;
+  index: number;
+  onSelect: (index: number) => void;
+}) => {
+  const [duration, setDuration] = useState<number | undefined>(undefined);
+
+  return (
+    <li>
+      <audio
+        preload="metadata"
+        src={track.url}
+        onLoadedMetadata={(e) =>
+          setDuration((e.target as HTMLAudioElement).duration)
+        }
+      />
+      <button
+        onClick={() => onSelect(index)}
+        className="btn btn-primary flex justify-between w-full"
+      >
+        <span>{`${track.book} ${track.chapter}`}</span>
+        <span className="text-xs opacity-75">
+          {duration !== undefined ? formatTime(duration) : "—"}
+        </span>
+        <span>{`List ${track.list + 1} - Day ${track.day}`}</span>
+      </button>
+    </li>
+  );
+};
+
 const AudioControls = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -239,15 +273,12 @@ const AudioControls = () => {
               <div className="collapse-content ">
                 <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[400px]">
                   {audioObjects.map((track, index) => (
-                    <li key={index}>
-                      <button
-                        onClick={() => setAudioIndex(index)}
-                        className="btn btn-primary flex justify-between w-full"
-                      >
-                        <span>{`${track.book} ${track.chapter}`}</span>
-                        <span>{`List ${track.list + 1} - Day ${track.day}`}</span>
-                      </button>
-                    </li>
+                    <QueueItem
+                      key={track.url}
+                      track={track}
+                      index={index}
+                      onSelect={setAudioIndex}
+                    />
                   ))}
                 </ul>
               </div>

@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, ReactNode, FC } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  ReactNode,
+  FC,
+} from "react";
 import { useToast } from "./ToastProvider";
 
 export type AudioObject = {
@@ -12,6 +19,7 @@ export type AudioObject = {
 type AudioContextType = {
   audioObjects: AudioObject[];
   addAudioObject: (newAudio: AudioObject) => void;
+  addAudioObjects: (newAudios: AudioObject[]) => void;
   removeAudioObject: (removeAudio: AudioObject) => void;
   clearAudioQueue: () => void;
 };
@@ -39,6 +47,15 @@ export const AudioProvider: FC<{ children: ReactNode }> = ({ children }) => {
     addToast(`Added ${newAudio.book} ${newAudio.chapter} to queue`, "success");
   };
 
+  const addAudioObjects = useCallback((newAudios: AudioObject[]) => {
+    setAudioObjects((prev) => {
+      const existingUrls = new Set(prev.map((a) => a.url));
+      const toAdd = newAudios.filter((a) => !existingUrls.has(a.url));
+      if (toAdd.length === 0) return prev;
+      return [...prev, ...toAdd].sort(sortAudioObjects);
+    });
+  }, []);
+
   const removeAudioObject = (removeAudio: AudioObject) => {
     setAudioObjects((prev) => prev.filter((audio) => audio !== removeAudio));
   };
@@ -52,6 +69,7 @@ export const AudioProvider: FC<{ children: ReactNode }> = ({ children }) => {
       value={{
         audioObjects,
         addAudioObject,
+        addAudioObjects,
         removeAudioObject,
         clearAudioQueue,
       }}

@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useProfileData } from "../context/ProfileDataProvider";
 import List from "./List";
 import AudioControls from "./AudioControls";
-import { AudioProvider } from "../context/AudioObjectDataProvider";
+import {
+  AudioProvider,
+  AudioObject,
+  useAudioContext,
+} from "../context/AudioObjectDataProvider";
+import {
+  getTodaysReading,
+  getGlobalChapterNumber,
+} from "../utils/scripture-utils";
+import { loadTranslationHashes } from "../utils/bible-translation";
 
 type ListInfo = {
   label: string;
@@ -80,45 +89,93 @@ const lists: ListInfo[] = [
   { label: "Acts", books: ["ACT"] },
 ];
 
-const Lists = () => {
+const usePrePopulateQueue = () => {
+  const { bookmarks, translation } = useProfileData();
+  const { addAudioObjects } = useAudioContext();
+
+  useEffect(() => {
+    if (!bookmarks || !translation) return;
+
+    let ignore = false;
+
+    loadTranslationHashes(translation.shortName).then((hashes) => {
+      if (ignore) return;
+
+      const audioObjects: AudioObject[] = [];
+      lists.forEach((listInfo, listNumber) => {
+        const reading = getTodaysReading(bookmarks[listNumber], listInfo.books);
+        if (!reading) return;
+
+        const globalChapterNumber = getGlobalChapterNumber(reading);
+        const audioHash = globalChapterNumber
+          ? hashes[globalChapterNumber - 1]
+          : undefined;
+
+        const url = audioHash
+          ? `https://audio-bible-cdn.youversionapi.com/${translation.audioBibleNum}/32k/${reading.shortName}/${reading.chapter}-${audioHash}.mp3?version_id=${translation.bibleNum}`
+          : `https://www.bible.com/audio-bible/${translation.bibleNum}/${reading.shortName}.${reading.chapter}.${translation.shortName}`;
+
+        audioObjects.push({
+          url,
+          list: listNumber,
+          day: bookmarks[listNumber],
+          book: reading.fullName,
+          chapter: reading.chapter,
+        });
+      });
+
+      addAudioObjects(audioObjects);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [bookmarks, translation, addAudioObjects]);
+};
+
+const ListsContent = () => {
   const { user, loading, fetchError } = useProfileData();
   const [openList, setOpenList] = useState<number>(-1);
+
+  usePrePopulateQueue();
 
   const openListChangeHandler = (newValue: number) => {
     setOpenList(newValue % 10);
   };
 
-  return (
-    <AudioProvider>
-      {!user ? (
-        "Please log in to load your bookmarks and set a preferred Bible Translation"
-      ) : (
-        <>
-          {fetchError && (
-            <div className="alert alert-error">
-              <span>Failed to load profile: {fetchError}</span>
-            </div>
-          )}
-          <div className="flex flex-col gap-2 pb-[286px]">
-            {!loading &&
-              lists.map((listInfo: ListInfo, index) => (
-                <List
-                  key={listInfo.label}
-                  listNumber={index}
-                  title={listInfo.label}
-                  booksShortNames={listInfo.books}
-                  openList={openList}
-                  onChangeOpenList={openListChangeHandler}
-                />
-              ))}
-          </div>
-          <div className="fixed bottom-4 left-0 right-0 flex justify-center px-4 z-50">
-            <AudioControls />
-          </div>
-        </>
+  return !user ? (
+    "Please log in to load your bookmarks and set a preferred Bible Translation"
+  ) : (
+    <>
+      {fetchError && (
+        <div className="alert alert-error">
+          <span>Failed to load profile: {fetchError}</span>
+        </div>
       )}
-    </AudioProvider>
+      <div className="flex flex-col gap-2 pb-[286px]">
+        {!loading &&
+          lists.map((listInfo: ListInfo, index) => (
+            <List
+              key={listInfo.label}
+              listNumber={index}
+              title={listInfo.label}
+              booksShortNames={listInfo.books}
+              openList={openList}
+              onChangeOpenList={openListChangeHandler}
+            />
+          ))}
+      </div>
+      <div className="fixed bottom-4 left-0 right-0 flex justify-center px-4 z-50">
+        <AudioControls />
+      </div>
+    </>
   );
 };
+
+const Lists = () => (
+  <AudioProvider>
+    <ListsContent />
+  </AudioProvider>
+);
 
 export default Lists;
