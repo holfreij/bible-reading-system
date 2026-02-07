@@ -5,6 +5,8 @@ import {
   PauseCircleIcon,
   QueueListIcon,
   ChevronUpDownIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -63,6 +65,7 @@ const AudioControls = () => {
   const { bookmarks, setBookmarks } = useProfileData();
   const { addToast } = useToast();
 
+  const [minimized, setMinimized] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
 
   const currentAudio: AudioObject | undefined = useMemo(() => {
@@ -187,105 +190,145 @@ const AudioControls = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPlaying]);
 
+  const trackLabel = currentAudio
+    ? `${currentAudio.book} ${currentAudio.chapter}`
+    : "No track";
+
   return (
     <div className="card bg-base-300 w-full max-w-96 shadow-xl">
-      <div className="card-body p-4">
-        <div className="flex flex-col gap-2">
-          <audio
-            ref={audioRef}
-            src={currentAudio ? currentAudio.url : ""}
-            onEnded={handleFinish}
-          />
-          <div className="text-center text-lg">
-            {currentAudio
-              ? `List ${currentAudio.list + 1} - Day ${currentAudio.day} - ${
-                  currentAudio.book
-                } ${currentAudio.chapter}`
-              : 'Press "Listen" on a reading to add to queue'}
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={audioRef.current?.duration || 0}
-            value={currentTime}
-            onChange={(event) => {
-              if (!audioRef.current) return;
-              audioRef.current.currentTime = +event.target.value;
-            }}
-            className="range range-xs"
-            aria-label="Seek"
-          />
-          <div className="flex justify-between">
-            <div>{formatTime(currentTime)}</div>
-            <div>{formatTime(audioRef.current?.duration)}</div>
-          </div>
-          <div className="flex justify-center min-h-20 items-center gap-8">
-            <button
-              className="btn btn-circle"
-              onClick={handlePrevious}
-              disabled={!currentAudio}
-              aria-label="Previous"
-            >
-              <BackwardIcon />
-            </button>
-            <button
-              className="btn btn-circle w-20 h-20"
-              onClick={handlePlayPause}
-              disabled={!currentAudio}
-              aria-label={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying ? <PauseCircleIcon /> : <PlayCircleIcon />}{" "}
-            </button>
-            <button
-              className="btn btn-circle"
-              onClick={handleNext}
-              disabled={!currentAudio}
-              aria-label="Next"
-            >
-              <ForwardIcon />
-            </button>
-          </div>
-          <div className="flex justify-center">
-            <button
-              className="btn btn-sm btn-ghost"
-              onClick={() =>
-                setPlaybackRate((prev) => {
-                  const index = PLAYBACK_SPEEDS.indexOf(prev);
-                  return PLAYBACK_SPEEDS[(index + 1) % PLAYBACK_SPEEDS.length];
-                })
-              }
-              disabled={!currentAudio}
-              aria-label="Playback speed"
-            >
-              {playbackRate}x
-            </button>
-          </div>
-          <div className="flex justify-center gap-4">
-            <div className="bg-base-200 collapse">
-              <input type="checkbox" className="peer" />
-              <div className="collapse-title pr-4">
-                <div className="flex justify-between items-center">
-                  <QueueListIcon className="h-8" />
-                  Queue
-                  <ChevronUpDownIcon className="h-8" />
+      <audio
+        ref={audioRef}
+        src={currentAudio ? currentAudio.url : ""}
+        onEnded={handleFinish}
+      />
+      {minimized ? (
+        <div className="flex items-center gap-2 px-4 py-2">
+          <span className="flex-1 truncate text-sm">{trackLabel}</span>
+          <button
+            className="btn btn-circle btn-sm"
+            onClick={handlePlayPause}
+            disabled={!currentAudio}
+            aria-label={isPlaying ? "Pause" : "Play"}
+          >
+            {isPlaying ? (
+              <PauseCircleIcon className="h-6 w-6" />
+            ) : (
+              <PlayCircleIcon className="h-6 w-6" />
+            )}
+          </button>
+          <button
+            className="btn btn-circle btn-sm btn-ghost"
+            onClick={() => setMinimized(false)}
+            aria-label="Expand player"
+          >
+            <ChevronUpIcon className="h-5 w-5" />
+          </button>
+        </div>
+      ) : (
+        <div className="card-body p-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-end">
+              <button
+                className="btn btn-circle btn-sm btn-ghost"
+                onClick={() => setMinimized(true)}
+                aria-label="Minimize player"
+              >
+                <ChevronDownIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="text-center text-lg">
+              {currentAudio
+                ? `List ${currentAudio.list + 1} - Day ${currentAudio.day} - ${
+                    currentAudio.book
+                  } ${currentAudio.chapter}`
+                : 'Press "Listen" on a reading to add to queue'}
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={audioRef.current?.duration || 0}
+              value={currentTime}
+              onChange={(event) => {
+                if (!audioRef.current) return;
+                audioRef.current.currentTime = +event.target.value;
+              }}
+              className="range range-xs"
+              aria-label="Seek"
+            />
+            <div className="flex justify-between">
+              <div>{formatTime(currentTime)}</div>
+              <div>{formatTime(audioRef.current?.duration)}</div>
+            </div>
+            <div className="flex justify-center min-h-20 items-center gap-8">
+              <button
+                className="btn btn-circle"
+                onClick={handlePrevious}
+                disabled={!currentAudio}
+                aria-label="Previous"
+              >
+                <BackwardIcon />
+              </button>
+              <button
+                className="btn btn-circle w-20 h-20"
+                onClick={handlePlayPause}
+                disabled={!currentAudio}
+                aria-label={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? <PauseCircleIcon /> : <PlayCircleIcon />}{" "}
+              </button>
+              <button
+                className="btn btn-circle"
+                onClick={handleNext}
+                disabled={!currentAudio}
+                aria-label="Next"
+              >
+                <ForwardIcon />
+              </button>
+            </div>
+            <div className="flex justify-center">
+              <button
+                className="btn btn-sm btn-ghost"
+                onClick={() =>
+                  setPlaybackRate((prev) => {
+                    const index = PLAYBACK_SPEEDS.indexOf(prev);
+                    return PLAYBACK_SPEEDS[
+                      (index + 1) % PLAYBACK_SPEEDS.length
+                    ];
+                  })
+                }
+                disabled={!currentAudio}
+                aria-label="Playback speed"
+              >
+                {playbackRate}x
+              </button>
+            </div>
+            <div className="flex justify-center gap-4">
+              <div className="bg-base-200 collapse">
+                <input type="checkbox" className="peer" />
+                <div className="collapse-title pr-4">
+                  <div className="flex justify-between items-center">
+                    <QueueListIcon className="h-8" />
+                    Queue
+                    <ChevronUpDownIcon className="h-8" />
+                  </div>
                 </div>
-              </div>
-              <div className="collapse-content ">
-                <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[400px]">
-                  {audioObjects.map((track, index) => (
-                    <QueueItem
-                      key={track.url}
-                      track={track}
-                      index={index}
-                      onSelect={setAudioIndex}
-                    />
-                  ))}
-                </ul>
+                <div className="collapse-content ">
+                  <ul className="list-none p-0 m-0 space-y-4 overflow-y-auto max-h-[400px]">
+                    {audioObjects.map((track, index) => (
+                      <QueueItem
+                        key={track.url}
+                        track={track}
+                        index={index}
+                        onSelect={setAudioIndex}
+                      />
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
