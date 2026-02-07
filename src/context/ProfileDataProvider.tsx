@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
   useEffect,
@@ -119,20 +120,14 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    if (!hasFetched.current) return;
+    if (!user) {
+      setBookmarks(undefined);
+      setTranslation(BibleTranslations[0]);
+      hasFetched.current = false;
+    }
+  }, [user]);
 
-    const debounceTimer = setTimeout(() => {
-      const syncData = async () => {
-        if (!user?.id) return;
-        await updateProfile();
-      };
-      syncData();
-    }, 500);
-
-    return () => clearTimeout(debounceTimer);
-  }, [bookmarks, translation]);
-
-  const updateProfile = async () => {
+  const updateProfile = useCallback(async () => {
     if (!user) return;
 
     const updates = {
@@ -146,7 +141,17 @@ export const ProfileDataProvider = ({ children }: { children: ReactNode }) => {
     if (error) {
       console.error("Error updating profile:", error.message);
     }
-  };
+  }, [user, bookmarks, translation]);
+
+  useEffect(() => {
+    if (!hasFetched.current) return;
+
+    const debounceTimer = setTimeout(() => {
+      updateProfile();
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [updateProfile]);
 
   return (
     <ProfileDataContext.Provider

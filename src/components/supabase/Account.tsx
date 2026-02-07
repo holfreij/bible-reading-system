@@ -6,6 +6,10 @@ export default function Account() {
   const { bookmarks, setBookmarks, translation, setTranslation, user } =
     useProfileData();
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   const handleBookmarkChange = (index: number, value: number) => {
     const updatedBookmarks = bookmarks ? [...bookmarks] : [];
 
@@ -94,10 +98,7 @@ export default function Account() {
               <button
                 className="btn btn-error btn-outline"
                 type="button"
-                onClick={() => {
-                  supabase.auth.signOut();
-                  setBookmarks([]);
-                }}
+                onClick={handleSignOut}
               >
                 Sign Out
               </button>

@@ -61,6 +61,8 @@ const List = ({
       return;
     }
 
+    let ignore = false;
+
     const siteUrl = `https://www.bible.com/audio-bible/${translation.bibleNum}/${todaysReading.shortName}.${todaysReading.chapter}.${translation.shortName}`;
 
     const globalChapterNumber = getGlobalChapterNumber(todaysReading);
@@ -69,16 +71,25 @@ const List = ({
       return;
     }
 
-    loadTranslationHashes(translation.shortName).then((hashes) => {
-      const audioHash = hashes[globalChapterNumber - 1];
-      if (!audioHash) {
-        setListenUrl(siteUrl);
-        return;
-      }
-      setListenUrl(
-        `https://audio-bible-cdn.youversionapi.com/${translation.audioBibleNum}/32k/${todaysReading.shortName}/${todaysReading.chapter}-${audioHash}.mp3?version_id=${translation.bibleNum}`
-      );
-    });
+    loadTranslationHashes(translation.shortName)
+      .then((hashes) => {
+        if (ignore) return;
+        const audioHash = hashes[globalChapterNumber - 1];
+        if (!audioHash) {
+          setListenUrl(siteUrl);
+          return;
+        }
+        setListenUrl(
+          `https://audio-bible-cdn.youversionapi.com/${translation.audioBibleNum}/32k/${todaysReading.shortName}/${todaysReading.chapter}-${audioHash}.mp3?version_id=${translation.bibleNum}`
+        );
+      })
+      .catch(() => {
+        if (!ignore) setListenUrl(siteUrl);
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, [todaysReading, translation]);
 
   const handleAddToQueue = () => {

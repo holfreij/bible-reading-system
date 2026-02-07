@@ -112,7 +112,7 @@ const Lists = () => {
                 />
               ))}
           </div>
-          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-auto shadow-lg z-50">
+          <div className="fixed bottom-4 left-0 right-0 flex justify-center px-4 z-50">
             <AudioControls />
           </div>
         </>

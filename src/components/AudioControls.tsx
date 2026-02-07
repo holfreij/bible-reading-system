@@ -6,8 +6,7 @@ import {
   QueueListIcon,
   ChevronUpDownIcon,
 } from "@heroicons/react/24/solid";
-import { useEffect, useMemo, useRef, useState } from "react";
-import ReactAudioPlayer from "react-audio-player";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AudioObject,
   useAudioContext,
@@ -16,50 +15,51 @@ import { formatTime } from "../utils/audio-utils";
 import { useProfileData } from "../context/ProfileDataProvider";
 
 const AudioControls = () => {
-  const audioPlayerRef = useRef<ReactAudioPlayer>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const [audioIndex, setAudioIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [shouldPlay, setShouldPlay] = useState<boolean>(false);
 
   const { audioObjects, removeAudioObject } = useAudioContext();
   const { bookmarks, setBookmarks } = useProfileData();
 
-  const handlePlayPause = () => {
-    if (!isPlaying) audioPlayerRef.current?.audioEl.current?.play();
-    else audioPlayerRef.current?.audioEl.current?.pause();
+  const [currentTime, setCurrentTime] = useState(0);
+
+  const currentAudio: AudioObject | undefined = useMemo(() => {
+    if (!audioObjects || !audioObjects[audioIndex]) return undefined;
+    return audioObjects[audioIndex];
+  }, [audioObjects, audioIndex]);
+
+  const handlePlayPause = useCallback(() => {
+    if (!currentAudio) return;
+    if (!isPlaying) audioRef.current?.play();
+    else audioRef.current?.pause();
     setIsPlaying(!isPlaying);
-    setShouldPlay(!isPlaying);
-  };
+  }, [isPlaying, currentAudio]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!audioObjects || !audioObjects[audioIndex]) return;
-
     if (audioIndex === audioObjects.length - 1) return;
 
     setAudioIndex((prev) => prev + 1);
-    setShouldPlay(true);
-  };
+    setIsPlaying(true);
+  }, [audioObjects, audioIndex]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (!audioObjects || !audioObjects[audioIndex]) return;
 
-    if (
-      currentTime > 2 &&
-      audioPlayerRef.current &&
-      audioPlayerRef.current.audioEl.current
-    ) {
-      audioPlayerRef.current.audioEl.current.currentTime = 0;
+    if (currentTime > 2 && audioRef.current) {
+      audioRef.current.currentTime = 0;
       return;
     }
 
     if (audioIndex === 0) return;
 
     setAudioIndex((prev) => prev - 1);
-    setShouldPlay(true);
-  };
+    setIsPlaying(true);
+  }, [audioObjects, audioIndex, currentTime]);
 
-  const handleFinish = () => {
+  const handleFinish = useCallback(() => {
     if (!currentAudio) return;
     if (!bookmarks) return;
 
@@ -78,12 +78,7 @@ const AudioControls = () => {
       if (prev >= newLength) return newLength - 1;
       return prev;
     });
-  };
-
-  const currentAudio: AudioObject | undefined = useMemo(() => {
-    if (!audioObjects || !audioObjects[audioIndex]) return undefined;
-    return audioObjects[audioIndex];
-  }, [audioObjects, audioIndex]);
+  }, [currentAudio, bookmarks, setBookmarks, audioObjects, removeAudioObject]);
 
   useEffect(() => {
     if ("mediaSession" in navigator) {
@@ -113,13 +108,11 @@ const AudioControls = () => {
   }, [currentAudio, handlePlayPause, handleNext, handlePrevious]);
 
   useEffect(() => {
-    if (shouldPlay) {
-      audioPlayerRef.current?.audioEl.current?.play();
-      setIsPlaying(true);
+    if (isPlaying) {
+      audioRef.current?.play();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAudio]);
-
-  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -127,8 +120,7 @@ const AudioControls = () => {
     let animationFrameId: number;
 
     const updateTime = () => {
-      const currentTime =
-        audioPlayerRef.current?.audioEl.current?.currentTime || 0;
+      const currentTime = audioRef.current?.currentTime || 0;
       setCurrentTime(currentTime);
       animationFrameId = requestAnimationFrame(updateTime);
     };
@@ -139,49 +131,42 @@ const AudioControls = () => {
   }, [isPlaying]);
 
   return (
-    <div className="card bg-base-300 w-96 shadow-xl">
+    <div className="card bg-base-300 w-full max-w-96 shadow-xl">
       <div className="card-body p-4">
         <div className="flex flex-col gap-2">
-          <ReactAudioPlayer
-            onEnded={handleFinish}
+          <audio
+            ref={audioRef}
             src={currentAudio ? currentAudio.url : ""}
-            ref={audioPlayerRef}
+            onEnded={handleFinish}
           />
           <div className="text-center text-lg">
             {currentAudio
               ? `List ${currentAudio.list + 1} - Day ${currentAudio.day} - ${
                   currentAudio.book
                 } ${currentAudio.chapter}`
-              : "Audio player unavailable"}
+              : 'Press "Listen" on a reading to add to queue'}
           </div>
           <input
             type="range"
             min={0}
-            max={audioPlayerRef.current?.audioEl.current?.duration || 0}
+            max={audioRef.current?.duration || 0}
             value={currentTime}
             onChange={(event) => {
-              if (
-                !audioPlayerRef ||
-                !audioPlayerRef.current ||
-                !audioPlayerRef.current.audioEl ||
-                !audioPlayerRef.current.audioEl.current
-              )
-                return;
-              audioPlayerRef.current.audioEl.current.currentTime =
-                +event.target.value;
+              if (!audioRef.current) return;
+              audioRef.current.currentTime = +event.target.value;
             }}
             className="range range-xs"
+            aria-label="Seek"
           />
           <div className="flex justify-between">
             <div>{formatTime(currentTime)}</div>
-            <div>
-              {formatTime(audioPlayerRef.current?.audioEl.current?.duration)}
-            </div>
+            <div>{formatTime(audioRef.current?.duration)}</div>
           </div>
           <div className="flex justify-center min-h-20 items-center gap-8">
             <button
               className="btn btn-circle"
               onClick={handlePrevious}
+              disabled={!currentAudio}
               aria-label="Previous"
             >
               <BackwardIcon />
@@ -189,6 +174,7 @@ const AudioControls = () => {
             <button
               className="btn btn-circle w-20 h-20"
               onClick={handlePlayPause}
+              disabled={!currentAudio}
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? <PauseCircleIcon /> : <PlayCircleIcon />}{" "}
@@ -196,6 +182,7 @@ const AudioControls = () => {
             <button
               className="btn btn-circle"
               onClick={handleNext}
+              disabled={!currentAudio}
               aria-label="Next"
             >
               <ForwardIcon />
